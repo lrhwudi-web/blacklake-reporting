@@ -1,0 +1,68 @@
+<!-- Generated from the canonical detail template. -->
+  <view class="report-menu-mask" wx:if="{{reportMenu}}" catchtap="closeReportMenu" catchtouchmove="closeReportMenu"/>
+  <view class="report-action-menu {{reportMenuOpen ? 'is-open' : ''}} {{reduceMotion ? 'menu-reduced' : ''}}" data-anchor="{{reportMenu.anchorId}}" wx:if="{{reportMenu}}" style="left:{{reportMenu.x}}px;top:{{reportMenu.y}}px;width:{{reportMenu.width}}px;transform-origin:{{reportMenu.originX}}px {{reportMenu.originY}}px" aria-role="menu" aria-label="报工操作" aria-hidden="{{!reportMenuOpen}}" catchtap="stopProcessBubble">
+    <view class="report-menu-arrow arrow-{{reportMenu.side}}" style="{{reportMenu.arrowStyle}}"/>
+    <view class="report-menu-surface">
+      <button size="mini" class="native-button report-menu-item {{item.action === 'deleteReport' ? 'is-danger' : ''}}" wx:for="{{reportMenu.options}}" wx:key="action" data-action="{{item.action}}" catchtap="chooseReportMenuAction" disabled="{{!reportMenuOpen || actionBusy}}" aria-role="menuitem">
+        <view class="report-menu-icon icon-{{item.icon}}"><view class="pencil-body" wx:if="{{item.icon === 'edit'}}"></view><view class="trash-body" wx:if="{{item.icon === 'delete'}}"><view class="trash-lid"></view><view class="trash-handle"></view></view><view class="restore-ring" wx:if="{{item.icon === 'restore'}}"></view></view><text>{{item.label}}</text>
+      </button>
+    </view>
+  </view>
+  <view class="report-mask" wx:if="{{reportPanel}}" catchtap="closeReportLayer"/>
+  <view class="report-panel {{reportPanel.isEditor ? 'report-editor-panel' : ''}} {{reportPeopleOpen ? 'is-selecting-people' : ''}} {{reportDefectsOpen ? 'is-editing-defects' : ''}}" style="{{reportPanel.isEditor ? 'height:' + reportEditorHeight + 'px;' + reportExpandStyle : ''}}" wx:if="{{reportPanel}}" aria-role="dialog" aria-label="{{reportPeopleMounted ? '选择生产人员' : reportPanel.title}}" aria-modal="true" aria-hidden="{{!!reportTimeWheel}}" catchtap="stopProcessBubble">
+    <view mark:backIgnore="{{true}}" class="report-editor-grip" wx:if="{{reportPanel.isEditor && !reportPeopleMounted && !reportTimeWheel}}" bindtouchstart="reportEditorResizeStart" catchtouchmove="reportEditorResizeMove" bindtouchend="reportEditorResizeEnd" bindtouchcancel="reportEditorResizeEnd" aria-label="上下拖动调整编辑报工高度"><view class="sheet-grip-line"/></view>
+    <view class="report-panel-heading"><view><text>{{reportPeopleMounted ? '选择人员' : reportPanel.title}}</text><text>{{reportPanel.processName}} · {{reportPanel.isEditor ? reportEditor.workerName : reportPanel.workerName}}</text></view><button size="mini" class="native-button" bindtap="closeReportLayer" disabled="{{actionBusy}}" aria-label="{{reportPeopleMounted ? '返回报工编辑' : '关闭报工编辑'}}"><image src="/workspace/assets/ui-chevron-down.png"/></button></view>
+    <view class="report-editor-stage" wx:if="{{reportPanel.isEditor}}">
+    <scroll-view enhanced="{{true}}" show-scrollbar="{{false}}" class="report-editor-scroll report-editor-main {{reportPeopleOpen ? 'is-obscured' : ''}}" scroll-y="true" scroll-into-view="{{reportDefectsOpen ? 'report-defect-fields' : ''}}" aria-hidden="{{reportPeopleOpen}}">
+      <text class="editor-section-label">生产信息</text>
+      <view class="editor-group">
+        <button size="mini" wx:if="{{!reportPanel.quantityOnly}}" class="native-button editor-row editor-person-trigger" bindtap="openReportPeople" aria-label="选择生产人员" aria-expanded="{{reportPeopleOpen}}"><text>生产人员</text><view><text>{{reportEditor.workerName}}</text><image src="/workspace/assets/ui-chevron-down.png"/></view></button>
+        <view class="editor-quantity-grid"><view><text>良品数</text><input mark:backIgnore="{{true}}" type="number" focus="{{false}}" value="{{reportGood}}" bindinput="onReportGood" aria-label="修改合格数"/></view><view wx:if="{{reportPanel.showDefects !== false}}"><text>不良数</text><input mark:backIgnore="{{true}}" type="number" focus="{{false}}" value="{{reportBad}}" bindinput="onReportBad" aria-label="修改不良数"/></view></view>
+        <button size="mini" wx:if="{{reportPanel.showDefects !== false}}" class="native-button editor-row editor-defect-trigger" bindtap="toggleReportDefects" aria-expanded="{{reportDefectsOpen}}"><text>不良品项</text><view><text>{{reportBad === '0' ? '无不良' : reportDefectText || '选择并分配数量'}}</text><image src="/workspace/assets/ui-chevron-down.png"/></view></button>
+        <view id="report-defect-fields" class="editor-defects" wx:if="{{reportDefectsOpen}}"><view class="editor-defect-row" wx:for="{{reportEditor.defects}}" wx:key="code"><button size="mini" class="native-button defect-choice {{item.selected ? 'selected' : ''}}" data-code="{{item.code}}" bindtap="toggleReportDefect" aria-role="checkbox" aria-checked="{{item.selected}}">{{item.name}}</button><input mark:backIgnore="{{true}}" wx:if="{{item.selected}}" type="number" value="{{item.quantity}}" data-code="{{item.code}}" bindinput="onReportDefectQuantity" aria-label="{{item.name}}数量"/></view><text class="editor-small-note">各项数量合计需等于不良数</text></view>
+      </view>
+      <block wx:if="{{!reportPanel.quantityOnly}}">
+      <text class="editor-section-label">时间与工时</text>
+      <view class="editor-group">
+        <view class="editor-time-grid">
+          <button size="mini" class="native-button editor-time-trigger" data-part="start" bindtap="openReportDateTime" aria-label="选择开始时间"><text class="editor-time-label">开始时间</text><text class="editor-date">{{reportEditor.startDate || '选择日期'}}</text><view><text class="editor-time">{{reportEditor.startTime || '选择时间'}}</text><image src="/workspace/assets/ui-chevron-down.png"/></view></button>
+          <button size="mini" class="native-button editor-time-trigger" data-part="end" bindtap="openReportDateTime" aria-label="选择结束时间"><text class="editor-time-label">结束时间</text><text class="editor-date">{{reportEditor.endDate || '选择日期'}}</text><view><text class="editor-time">{{reportEditor.endTime || '选择时间'}}</text><image src="/workspace/assets/ui-chevron-down.png"/></view></button>
+        </view>
+        <view class="editor-row editor-worktime"><text>工时</text><view class="editor-duration unified-duration"><input mark:backIgnore="{{true}}" type="number" value="{{reportEditor.hours}}" data-field="hours" bindinput="onReportField" aria-label="工时小时"/><text>时</text><input mark:backIgnore="{{true}}" type="number" value="{{reportEditor.minutes}}" data-field="minutes" bindinput="onReportField" aria-label="工时分钟"/><text>分</text><button size="mini" class="native-button" bindtap="recalculateReport" aria-label="按起止时间重算工时">重算</button></view></view>
+      </view>
+      <button size="mini" class="native-button editor-extra-toggle" bindtap="toggleReportExtra" aria-expanded="{{reportExtra}}"><text>更多信息</text><text>{{reportExtra ? '收起' : '用料工序、打卡时长'}}</text><image src="/workspace/assets/ui-chevron-down.png"/></button>
+      <view class="editor-group" wx:if="{{reportExtra}}"><view class="editor-row"><text>用料工序</text><input mark:backIgnore="{{true}}" value="{{reportEditor.materialProcess}}" data-field="materialProcess" bindinput="onReportField" maxlength="100" placeholder="选填" aria-label="用料工序"/></view><view class="editor-row"><text>打卡时长</text><view><text>{{reportEditor.punchMinutes ? reportEditor.punchMinutes + ' 分钟' : '—'}}</text><text class="editor-punch-auto">按起止时间计算</text></view></view></view>
+      </block>
+      <view class="editor-scroll-space"/>
+    </scroll-view>
+    <view class="report-people-layer {{reportPeopleOpen ? 'is-open' : ''}}" wx:if="{{reportPeopleMounted}}" aria-hidden="{{!reportPeopleOpen}}">
+      <view class="report-people-search"><image src="/workspace/assets/people-search.png"/><input mark:backIgnore="{{true}}" value="{{reportPeopleQuery}}" bindinput="onReportPeopleSearch" placeholder="搜索姓名或部门" aria-label="搜索生产人员"/><button size="mini" class="native-button" wx:if="{{reportPeopleQuery}}" bindtap="clearReportPeopleSearch" aria-label="清空人员搜索">清空</button></view>
+      <scroll-view enhanced="{{true}}" show-scrollbar="{{false}}" class="report-people-list {{reportPeopleInstant ? 'people-instant' : ''}}" scroll-y="true">
+        <view class="people-result-count"><text>{{reportPeopleQuery ? '搜索结果' : '按部门选择'}}</text><text>{{reportPeopleTotal}} 人</text></view>
+        <view class="report-department" wx:for="{{reportPeopleGroups}}" wx:for-item="department" wx:key="key">
+          <button size="mini" class="native-button report-department-heading {{department.expanded ? 'expanded' : ''}}" data-key="{{department.key}}" bindtap="toggleReportDepartment" aria-expanded="{{department.expanded}}"><text>{{department.name}}</text><text>{{department.count}}人</text><image src="/workspace/assets/ui-chevron-down.png"/></button>
+          <view class="report-department-body {{department.expanded ? 'expanded' : ''}}" style="height:{{department.height}}px" aria-hidden="{{!department.expanded}}"><view class="report-department-members"><button size="mini" class="native-button report-person {{person.selected ? 'selected' : ''}}" wx:for="{{department.members}}" wx:for-item="person" wx:key="id" data-id="{{person.id}}" bindtap="selectReportEmployee" disabled="{{!department.expanded || actionBusy}}" aria-label="选择{{person.name}}" aria-pressed="{{person.selected}}"><view class="report-person-avatar">{{person.initial}}</view><text>{{person.name}}</text><text class="report-person-selected" wx:if="{{person.selected}}">已选</text></button></view></view>
+        </view>
+        <text class="report-people-empty" wx:if="{{!reportPeopleTotal}}">{{reportPeopleQuery ? '未找到匹配人员' : '暂无可选人员'}}</text>
+        <view class="editor-scroll-space"/>
+      </scroll-view>
+    </view>
+    </view>
+    <view wx:else><text class="report-delete-copy">{{reportPanel.action === 'deleteReport' ? '删除这条报工？' : '恢复这条已删除的报工记录？'}}</text></view>
+    <view class="editor-footer" wx:if="{{!reportPeopleMounted}}"><text class="report-form-error" wx:if="{{reportError}}">{{reportError}}</text><view class="report-panel-actions"><button size="mini" class="native-button" wx:if="{{!reportPanel.isEditor}}" bindtap="closeReportPanel" disabled="{{actionBusy}}">取消</button><button size="mini" class="native-button {{reportPanel.action === 'deleteReport' ? 'report-danger' : 'report-save'}}" bindtap="confirmReportAction" disabled="{{actionBusy}}">{{actionBusy ? '处理中…' : reportPanel.action === 'deleteReport' ? '确认删除' : reportPanel.action === 'restoreReport' ? '恢复记录' : reportPanel.action === 'createReport' ? '新建报工' : '保存修改'}}</button></view></view>
+  </view>
+  <view class="report-time-mask {{reportTimeOpen ? 'is-open' : ''}}" wx:if="{{reportTimeWheel}}" catchtap="closeReportDateTime" catchtouchmove="stopProcessBubble"/>
+  <view class="report-time-sheet {{reportTimeOpen ? 'is-open' : ''}} {{reduceMotion ? 'time-reduced' : ''}}" wx:if="{{reportTimeWheel}}" aria-role="dialog" aria-label="{{reportTimeWheel.part === 'start' ? '选择开始时间' : '选择结束时间'}}" aria-modal="true" catchtap="stopProcessBubble" catchtouchmove="stopProcessBubble">
+    <view class="report-time-heading"><text>{{reportTimeWheel.part === 'start' ? '选择开始时间' : '选择结束时间'}}</text><button size="mini" class="native-button" bindtap="closeReportDateTime" aria-label="关闭时间选择"><image src="/workspace/assets/ui-chevron-down.png"/></button></view>
+    <view class="report-time-wheels">
+      <picker-view mark:backIgnore="{{true}}" class="report-date-wheel" value="{{reportTimeWheel.value}}" indicator-style="height:44px;background:rgba(219,234,254,.24);border-top:1px solid rgba(160,190,231,.35);border-bottom:1px solid rgba(160,190,231,.35);" mask-style="background-image:linear-gradient(rgba(248,251,255,.96),rgba(248,251,255,0)),linear-gradient(to top,rgba(248,251,255,.96),rgba(248,251,255,0));" bindchange="onReportDateWheelChange" bindpickstart="onReportDateWheelStart" bindpickend="onReportDateWheelEnd" immediate-change="true">
+        <picker-view-column><view class="report-wheel-item" wx:for="{{reportTimeWheel.years}}" wx:key="*this">{{item}}年</view></picker-view-column>
+        <picker-view-column><view class="report-wheel-item" wx:for="{{reportTimeWheel.months}}" wx:key="*this">{{item}}月</view></picker-view-column>
+        <picker-view-column><view class="report-wheel-item" wx:for="{{reportTimeWheel.days}}" wx:key="*this">{{item}}日</view></picker-view-column>
+        <picker-view-column><view class="report-wheel-item" wx:for="{{reportTimeWheel.hours}}" wx:key="*this">{{item}}时</view></picker-view-column>
+        <picker-view-column><view class="report-wheel-item" wx:for="{{reportTimeWheel.minutes}}" wx:key="*this">{{item}}分</view></picker-view-column>
+      </picker-view>
+    </view>
+    <text class="report-time-error" wx:if="{{reportTimeError}}" aria-role="alert">{{reportTimeError}}</text>
+    <view class="report-time-actions"><button size="mini" class="native-button" bindtap="closeReportDateTime">取消</button><button size="mini" class="native-button time-confirm" bindtap="confirmReportDateTime" disabled="{{!reportTimeOpen || reportTimePicking}}">确定</button></view>
+  </view>

@@ -1,0 +1,31 @@
+/* One compact report card across leader, order detail and employee records. */
+.record-compact.record-compact{display:block;box-sizing:border-box;min-height:114px;padding:20px 18px;margin:0 0 10px;border:0;border-radius:11px;background:#fff;box-shadow:none;color:#333}
+.record-head.record-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:26px}
+.record-person.record-person{display:block;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px;line-height:26px;font-weight:550;text-align:left;color:#303030}
+.record-person-button.record-person-button{margin:0;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+.record-stamp.record-stamp{display:block;flex-shrink:0;white-space:nowrap;color:#999;font-size:14px;line-height:22px;font-weight:400;font-variant-numeric:tabular-nums}
+.record-sync.record-sync{flex-shrink:0;border-radius:12px;padding:2px 7px;background:#EFF6FF;color:#2563EB;font-size:10px;line-height:16px;white-space:nowrap}.record-sync-warning.record-sync-warning{background:#FFF7ED;color:#B45309}
+.record-bottom.record-bottom{display:flex;align-items:center;gap:4px;margin-top:12px;min-height:36px}
+.record-metrics.record-metrics{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px 12px;flex:1;min-width:0}
+.record-stat.record-stat{display:flex;align-items:baseline;gap:5px;min-width:0;max-width:100%;line-height:22px}
+.record-label.record-label{flex-shrink:0;white-space:nowrap;color:#999;font-size:15px;font-weight:400}
+.record-value.record-value{min-width:0;color:#383838;font-size:18px;font-weight:400;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.record-bad.record-bad{color:#FF6464}
+.record-duration.record-duration{font-size:14px;color:#64748B}
+.record-action.record-action{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:40px;min-width:40px;height:40px;margin:-2px -8px -2px 0;padding:0;border:0;border-radius:10px;background:transparent;box-shadow:none}
+.record-action-icon.record-action-icon{display:block;width:20px;height:20px;transform:rotate(90deg);opacity:.55}
+.record-action.record-action.is-active.is-active{background:#EDF4FF}
+.record-deleted.record-deleted{display:block;margin-top:3px;color:#B07A7A;font-size:11px;line-height:18px}
+.record-context.record-context{overflow:hidden;opacity:0;pointer-events:none;transition:height 200ms cubic-bezier(.23,1,.32,1),opacity 160ms cubic-bezier(.23,1,.32,1)}
+.record-context.record-context.is-open.is-open{opacity:1;pointer-events:auto}
+.record-context-content.record-context-content{padding:9px 0 2px;border-top:1px solid #F0F0F0;margin-top:5px}
+.record-context-line.record-context-line{display:block;color:#748298;font-size:12px;line-height:20px;overflow-wrap:anywhere}
+.record-compact.record-compact.report-deleted.report-deleted,.record-compact.record-compact.is-deleted.is-deleted{opacity:.65}
+.process-report-card.process-report-card .record-compact.record-compact{display:block;min-height:114px;padding:20px 18px;margin:8px 0 10px;border:0;border-radius:11px;background:#fff}
+.process-report-card.process-report-card .record-action.record-action,.tasks-page.tasks-page .record-action.record-action{width:40px;min-width:40px;height:40px;margin:-2px -8px -2px 0;padding:0;border:0;background:transparent;box-shadow:none}
+.process-report-card.process-report-card .record-action.record-action.is-active.is-active,.tasks-page.tasks-page .record-action.record-action.is-active.is-active{background:#EDF4FF}
+.tasks-page.tasks-page .task-report-card.task-report-card.record-compact.record-compact{margin:0 10px 10px;padding:20px 18px;border:0;border-radius:11px;background:#fff;box-shadow:none}
+.worker-panel-body.worker-panel-body .worker-record.worker-record.record-compact.record-compact{margin:0 0 10px;padding:20px 18px;border:0;border-radius:11px;background:#fff;box-shadow:none}
+@media(max-width:350px){.record-compact.record-compact,.process-report-card.process-report-card .record-compact.record-compact,.tasks-page.tasks-page .task-report-card.task-report-card.record-compact.record-compact,.worker-panel-body.worker-panel-body .worker-record.worker-record.record-compact.record-compact{padding:17px 12px;min-height:108px}.record-person.record-person{font-size:15px}.record-stamp.record-stamp{font-size:11px}.record-head.record-head{gap:6px}.record-metrics.record-metrics{gap:4px 10px}.record-label.record-label{font-size:12px}.record-value.record-value{font-size:15px}.record-duration.record-duration{font-size:12px}.record-stat.record-stat{gap:4px}}
+.worker-reduced.worker-reduced .record-context.record-context{transition-duration:100ms}
+@media(prefers-reduced-motion:reduce){.record-context.record-context{transition-duration:100ms}}

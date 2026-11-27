@@ -1,0 +1,52 @@
+function start(e, owner) {
+  var s=owner.getState(),d=owner.selectComponent('.order-orb-button').getDataset();
+  s.active=false;
+  if(!e.touches||e.touches.length!==1)return false;
+  var t=e.touches[0];
+  s.active=true;s.dragging=false;s.cancelled=false;s.locked=d.locked;s.startX=t.pageX;s.startY=t.pageY;
+  s.x=d.x;s.y=d.y;s.originX=d.x;s.originY=d.y;s.box={minX:d.minX,maxX:d.maxX,minY:d.minY,maxY:d.maxY};
+  owner.callMethod('onOrbPress');return false;
+}
+function hold(e,owner) {
+  var s=owner.getState();if(!s.active||s.cancelled)return false;
+  if(s.locked){s.cancelled=true;return false;}
+  s.dragging=true;owner.callMethod('onOrbDragStart');return false;
+}
+function move(e,owner) {
+  var s=owner.getState();if(!s.active)return false;
+  if(!e.touches||e.touches.length!==1){s.cancelled=true;owner.callMethod('onOrbGestureCancel');return false;}
+  var t=e.touches[0],dx=t.pageX-s.startX,dy=t.pageY-s.startY;
+  if(!s.dragging){if(Math.abs(dx)>8||Math.abs(dy)>8){s.cancelled=true;owner.callMethod('onOrbGestureCancel');}return false;}
+  s.x=Math.max(s.box.minX,Math.min(s.box.maxX,s.originX+dx));
+  s.y=Math.max(Math.min(s.box.minY,s.box.maxY),Math.min(s.box.maxY,s.originY+dy));
+  owner.selectComponent('.order-orb-button').setStyle({transform:'translate3d('+s.x+'px,'+s.y+'px,0)'});
+  return false;
+}
+function end(e,owner) {
+  var s=owner.getState();s.touchEndedAt=e.timeStamp;if(!s.active)return false;s.active=false;
+  if(s.dragging)owner.callMethod('onOrbDragEnd',{x:s.x,y:s.y});
+  else {
+    owner.callMethod('onOrbRelease');
+    // WXS touch handling can consume the native tap. Complete short taps here.
+    if(!s.cancelled)owner.callMethod('toggle');
+  }
+  return false;
+}
+function tap(e,owner) {
+  var s=owner.getState(),elapsed=e.timeStamp-s.touchEndedAt;
+  // A runtime may still emit tap after touchend: never toggle twice.
+  if(elapsed>=0&&elapsed<500)return false;
+  owner.callMethod('toggle');
+  return false;
+}
+function cancel(e,owner) {
+  var s=owner.getState();s.active=false;s.cancelled=true;
+  owner.callMethod('onOrbGestureCancel');
+  owner.selectComponent('.order-orb-button').setStyle({transform:'translate3d('+s.originX+'px,'+s.originY+'px,0)'});
+  return false;
+}
+function sync(value,old,owner,instance) {
+  owner.getState().active=false;
+  if(value){var p=value.split(',');instance.setStyle({transform:'translate3d('+p[0]+'px,'+p[1]+'px,0)'});}
+}
+module.exports={start:start,hold:hold,move:move,end:end,tap:tap,cancel:cancel,sync:sync};

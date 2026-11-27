@@ -1,0 +1,77 @@
+<view class="page login-page">
+  <view class="header">
+    <view class="brand"><view class="brand-mark">✓</view><text>安心报工</text></view>
+  </view>
+
+  <view wx:if="{{stage === 'loading'}}" class="login-state">
+    <text class="login-state-title">正在认出您…</text>
+  </view>
+
+  <view wx:elif="{{stage === 'error'}}" class="login-state">
+    <text class="login-state-title">暂时没认出来</text>
+    <text class="login-state-copy">{{errorMessage}}</text>
+    <button class="primary-button" bindtap="startWechatLogin">重新识别</button>
+  </view>
+
+  <block wx:elif="{{stage === 'choose'}}">
+    <view class="hero login-hero">
+      <text class="hero-title">第一次，请选姓名</text>
+      <text class="hero-copy">只需要确认这一次</text>
+    </view>
+    <view class="operator-search">
+      <input value="{{search}}" placeholder="输入姓名查找" bindinput="onSearchInput" />
+    </view>
+    <button wx:if="{{reviewAvailable}}" class="review-entry" bindtap="openReview">微信审核体验</button>
+    <scroll-view class="operator-list" scroll-y enhanced show-scrollbar>
+      <view class="operator-row" wx:for="{{operators}}" wx:key="blacklakeOperatorId"
+        data-operator-id="{{item.blacklakeOperatorId}}" bindtap="chooseOperator"
+        hover-class="operator-row-pressed" aria-role="button" aria-label="选择 {{item.name}}">
+        <view>
+          <text class="operator-name">{{item.name}}</text>
+          <text class="operator-description" wx:if="{{item.description}}">{{item.description}}</text>
+        </view>
+        <text class="operator-arrow">›</text>
+      </view>
+      <view class="status-empty" wx:if="{{!operators.length}}">没有找到这个姓名</view>
+    </scroll-view>
+  </block>
+
+  <block wx:elif="{{stage === 'review'}}">
+    <view class="hero login-hero">
+      <text class="hero-title">微信审核体验</text>
+      <text class="hero-copy">请输入提审备注中的审核码</text>
+    </view>
+    <view class="card binding-card">
+      <text class="field-label binding-label">审核码</text>
+      <input class="review-code-input" password value="{{reviewCode}}" maxlength="64"
+        focus bindinput="onReviewCodeInput" placeholder="请输入审核码" />
+      <button class="primary-button" disabled="{{submitting}}" bindtap="loginReview">
+        {{submitting ? '正在进入…' : '进入审核体验'}}
+      </button>
+      <button class="link-button binding-back" disabled="{{submitting}}" bindtap="backToChoose">返回正常登录</button>
+    </view>
+  </block>
+
+  <block wx:elif="{{stage === 'confirm'}}">
+    <view class="hero login-hero">
+      <text class="hero-title">请班组长确认</text>
+      <text class="hero-copy">班组长输入一次性确认码</text>
+    </view>
+    <view class="card binding-card">
+      <view class="selected-operator">
+        <view class="selected-avatar">{{selectedOperatorInitial}}</view>
+        <view>
+          <text class="selected-name">{{selectedOperator.name}}</text>
+          <text class="operator-description" wx:if="{{selectedOperator.description}}">{{selectedOperator.description}}</text>
+        </view>
+      </view>
+      <text class="field-label binding-label">6位确认码</text>
+      <input class="confirmation-input" type="number" value="{{confirmationCode}}"
+        maxlength="6" focus bindinput="onConfirmationCodeInput" placeholder="000000" />
+      <button class="primary-button" disabled="{{submitting}}" bindtap="bindWechat">
+        {{submitting ? '正在确认…' : '确认，是我'}}
+      </button>
+      <button class="link-button binding-back" disabled="{{submitting}}" bindtap="backToChoose">名字选错了</button>
+    </view>
+  </block>
+</view>

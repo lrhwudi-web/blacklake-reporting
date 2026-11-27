@@ -1,0 +1,31 @@
+<view class="page">
+  <view class="hero compact-hero">
+    <text class="hero-title">最近任务</text>
+    <text class="hero-copy">显示已经结束或等待核对的任务</text>
+  </view>
+
+  <view class="card" wx:if="{{loading && assignments.length === 0}}">
+    <view class="status-empty">正在加载最近任务…</view>
+  </view>
+  <view class="refresh-notice" wx:if="{{loading && assignments.length > 0}}">正在刷新最近任务…</view>
+
+  <view class="card load-error" wx:if="{{loadError}}">
+    <text class="load-error-title">{{assignments.length > 0 ? '刷新失败' : '最近任务未加载'}}</text>
+    <text class="load-error-copy">{{loadError}}</text>
+    <text class="load-error-copy">{{assignments.length > 0 ? '下方保留上次加载的记录，可能还未更新。' : '暂时无法确认最近记录，请恢复网络后重试。'}}</text>
+    <button class="retry-button" bindtap="loadAssignments">重新加载</button>
+  </view>
+
+  <view class="card" wx:if="{{loaded && !loading && !loadError && assignments.length === 0}}">
+    <view class="status-empty">还没有已结束的任务。</view>
+  </view>
+
+  <view class="report-card" wx:for="{{assignments}}" wx:key="id">
+    <view class="report-top">
+      <view><text class="report-process">{{item.processName}}</text><text class="report-product">{{item.productName}}</text></view>
+      <text class="report-amount">{{item.status === 'QUANTITY_PENDING' ? '数量待核对' : (item.status === 'CANCELLED' ? '未报数量' : item.quantity + ' 件')}}</text>
+    </view>
+    <view class="report-details"><text>用时</text><text>{{item.durationText}}</text></view>
+    <view class="report-bottom"><text>{{item.endedAt}}</text><text class="report-success {{item.status !== 'COMPLETED' ? 'report-warning' : ''}}">{{item.statusText}}</text></view>
+  </view>
+</view>

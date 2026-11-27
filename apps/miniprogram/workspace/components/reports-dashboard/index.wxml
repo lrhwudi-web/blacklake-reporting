@@ -1,0 +1,128 @@
+<view class="report-dashboard detail-page glass-theme {{summaryEditorMotion && reportPanel ? 'rd-editor-motion' : ''}} {{summaryEditorClosing ? 'rd-editor-closing' : ''}} {{reduceMotion ? 'rd-reduced' : ''}}" style="{{summaryEditorMotion.style}}" wx:if="{{active}}">
+ <view class="rd-top" aria-hidden="{{reportRecordsOpen || !!picker || reportOrderMounted || !!reportPanel}}">
+  <view class="rd-header"><text class="rd-title">{{dateMode === 'today' ? '今日报表' : '生产报表'}}</text><view class="rd-tools"><button size="mini" class="native-button rd-icon" bindtap="toggleSearch" aria-label="搜索报表"><image src="/workspace/assets/people-search.png"/></button><button size="mini" class="native-button rd-icon" bindtap="openSort" aria-label="报表排序"><image src="/workspace/assets/ui-sort-descending.png"/></button><button size="mini" class="native-button rd-icon" bindtap="openFilters" aria-label="筛选报表"><image src="/workspace/assets/ui-filter.png"/></button></view></view>
+  <view mark:backIgnore="{{true}}" id="segment-reportTabs" class="glass-segments segment-interactive rd-tabs {{segmentTracks.reportTabs.pressed ? 'is-pressed' : ''}} {{reduceMotion ? 'segment-reduced' : ''}}" data-segment="reportTabs" bindtouchstart="onGlassSegmentStart" catchtouchmove="onGlassSegmentMove" bindtouchend="onGlassSegmentEnd" bindtouchcancel="onGlassSegmentCancel" aria-role="tablist" aria-label="报表类别">
+   <view class="segment-lens" style="transform:translate3d({{segmentTracks.reportTabs ? segmentTracks.reportTabs.x + 'px' : reportTab === 'summary' ? '0%' : reportTab === 'people' ? '100%' : reportTab === 'time' ? '200%' : '300%'}},0,0) scale({{segmentTracks.reportTabs ? segmentTracks.reportTabs.scaleX : 1}},{{segmentTracks.reportTabs ? segmentTracks.reportTabs.scaleY : 1}})" aria-hidden="true"/>
+   <button size="mini" class="native-button segment-option {{reportTab === 'summary' ? 'active' : ''}}" data-segment="reportTabs" data-index="0" bindtap="onGlassSegmentTap" aria-role="tab" aria-selected="{{reportTab === 'summary'}}">汇总</button><button size="mini" class="native-button segment-option {{reportTab === 'people' ? 'active' : ''}}" data-segment="reportTabs" data-index="1" bindtap="onGlassSegmentTap" aria-role="tab" aria-selected="{{reportTab === 'people'}}">人员</button><button size="mini" class="native-button segment-option {{reportTab === 'time' ? 'active' : ''}}" data-segment="reportTabs" data-index="2" bindtap="onGlassSegmentTap" aria-role="tab" aria-selected="{{reportTab === 'time'}}">工时</button><button size="mini" class="native-button segment-option {{reportTab === 'quality' ? 'active' : ''}}" data-segment="reportTabs" data-index="3" bindtap="onGlassSegmentTap" aria-role="tab" aria-selected="{{reportTab === 'quality'}}">品质</button>
+  </view>
+ </view>
+ <scroll-view enhanced="{{true}}" show-scrollbar="{{false}}" class="rd-main" scroll-y="{{!reportPanel && !reportRecordsOpen && !picker && !reportOrderMounted}}" aria-hidden="{{reportRecordsOpen || !!picker || reportOrderMounted || !!reportPanel}}">
+  <view class="rd-search" wx:if="{{searchOpen}}"><input mark:backIgnore="{{true}}" value="{{query}}" bindinput="onSearch" placeholder="搜索人员、工单、产品或工序" aria-label="搜索报表内容"/><button size="mini" class="native-button" bindtap="clearSearch">收起</button></view>
+  <view class="rd-filters"><button size="mini" class="native-button" bindtap="openDate" aria-label="选择报表日期"><text>日期</text><text>{{dateLabel}}</text><image src="/workspace/assets/ui-chevron-down.png"/></button><button size="mini" class="native-button" bindtap="openEmployees" aria-label="选择员工"><text>人员</text><text>{{employeeLabel}}</text><image src="/workspace/assets/ui-chevron-down.png"/></button></view>
+  <view class="rd-error" wx:if="{{error}}"><text>{{error}}</text><button size="mini" class="native-button" bindtap="loadReportData">重试</button></view><view class="rd-loading" wx:if="{{loading && !loaded}}">正在读取本地报表…</view>
+  <view wx:if="{{loaded}}">
+   <block wx:if="{{reportTab === 'summary'}}">
+    <view class="rd-summary-metrics">
+      <view class="rd-tile rd-tile-good"><text class="rd-tile-label">良品计件</text><text class="rd-tile-value">{{summary.pieceText}}<text wx:if="{{summary.pieceText !== '—'}}">件</text></text></view>
+      <view class="rd-tile rd-tile-approval"><text class="rd-tile-label">审批 / 总笔数</text><text class="rd-tile-value">{{summary.approvedText}}<text> / {{summary.count}}</text></text><text class="rd-tile-note" wx:if="{{summary.pendingApprovalCount != null}}">{{summary.pendingApprovalCount}} 笔待审批</text></view>
+      <view class="rd-tile rd-tile-output"><text class="rd-tile-label">报工总数</text><text class="rd-tile-value">{{summary.quantityText}}<text wx:if="{{summary.quantityText !== '—'}}">件</text></text><text class="rd-tile-note">良品 {{summary.pieceText}} · 不良 {{summary.badText}}</text></view>
+      <view class="rd-tile rd-tile-defect"><text class="rd-tile-label">不良率</text><text class="rd-tile-value">{{summary.rate}}</text></view>
+    </view>
+    <view class="rd-approval-toolbar">
+     <view class="rd-approval-filters" aria-label="筛选审批状态">
+      <view aria-hidden="true" class="rd-approval-slider {{approvalView === 'unknown' ? 'is-hidden' : ''}}" style="transform:translateX({{approvalView === 'approved' ? '100%' : '0%'}});"/>
+      <button size="mini" class="native-button rd-approval-tab {{approvalView === 'pending' ? 'selected' : ''}}" data-key="pending" bindtap="setApprovalView" aria-pressed="{{approvalView === 'pending'}}">未审批<text>{{summary.pendingText}}</text></button>
+      <button size="mini" class="native-button rd-approval-tab {{approvalView === 'approved' ? 'selected' : ''}}" data-key="approved" bindtap="setApprovalView" aria-pressed="{{approvalView === 'approved'}}">已审批<text>{{summary.approvedText}}</text></button>
+     </view>
+     <view class="rd-approval-tools">
+      <button wx:if="{{canManageReports && approvalView === 'pending' && summary.pendingApprovalCount}}" size="mini" class="native-button rd-batch-button" bindtap="openBatchApproval" disabled="{{loading}}">批量审批</button>
+      <button size="mini" class="native-button rd-summary-sort-button" bindtap="openSummarySort">排序<image src="/workspace/assets/ui-chevron-down.png"/></button>
+     </view>
+    </view>
+    <button size="mini" wx:if="{{summary.unknownApprovalCount > 0}}" class="native-button rd-approval-unknown {{approvalView === 'unknown' ? 'selected' : ''}}" data-key="unknown" bindtap="setApprovalView" aria-pressed="{{approvalView === 'unknown'}}">审批状态未同步 {{summary.unknownApprovalCount}} 笔</button>
+    <view wx:for="{{summaryRows}}" wx:key="id" id="rd-summary-record-{{index}}" class="record-compact rd-summary-record" data-id="{{item.id}}" data-index="{{index}}" bindtap="editSummaryReport">
+     <view class="record-head"><text class="record-person">{{item.personName}}</text><text class="record-stamp">{{item.approvalText}}</text></view>
+     <view class="rd-record-details"><view><text class="rd-detail-label">工单编号</text><text>{{item.orderCode}}</text></view><view><text class="rd-detail-label">工序名称</text><text>{{item.processName}}</text></view><view><text class="rd-detail-label">产品信息</text><text>{{item.recordProductText}}</text></view><view><text class="rd-detail-label">报工时间</text><text>{{item.recordSpanText}}</text></view></view>
+     <view class="record-bottom"><text class="rd-report-quantity">良品 <text>{{item.goodText}}</text> · 不良 <text>{{item.badText}}</text></text><view class="rd-approval-control" wx:if="{{canManageReports && item.approvalStatus !== null && (!item.groupReview || item.canApprove)}}"><text>{{item.approvalStatus === 10 ? '撤回审批' : '审批通过'}}</text><button size="mini" class="native-button rd-approval-switch {{(approvalRequests[item.id] ? item.approvalStatus === 0 : item.approvalStatus === 10) ? 'approved' : ''}} {{reduceMotion ? 'quiet-motion' : ''}}" data-id="{{item.id}}" catchtap="toggleApproval" disabled="{{!item.canApprove || item.approvalBusy || approvalRequests[item.id]}}" aria-role="switch" aria-checked="{{item.approvalStatus === 10}}" aria-label="{{item.approvalStatus === 10 ? '撤回审批' : '通过审批'}}"><view class="rd-approval-thumb"/></button></view></view>
+    </view>
+    <text class="rd-empty" wx:if="{{!summaryRows.length && !loading}}">暂无符合条件的报工</text><text class="rd-error" wx:if="{{processReportsError}}">{{processReportsError}}</text><button size="mini" wx:if="{{summaryHasMore}}" class="native-button rd-show-all" disabled="{{summaryLoadingMore}}" bindtap="loadMoreSummary">加载更多</button>
+   </block>
+   <block wx:else>
+   <view class="rd-summary rd-glass {{reportTab === 'people' ? 'rd-people-summary' : ''}} {{reportTab === 'quality' ? 'rd-quality-summary' : ''}}">
+    <block wx:if="{{reportTab === 'people'}}"><view><text class="rd-kpi-label">已报工人数</text><text class="rd-kpi">{{summary.people}}<text>人</text></text></view><view><text class="rd-kpi-label">报工总用时</text><text class="rd-kpi rd-duration">{{summary.duration}}</text></view><view><text class="rd-kpi-label">计件总数</text><text class="rd-kpi rd-piece-kpi">{{summary.pieceText}}<text>件</text></text><text class="rd-small" wx:if="{{summary.unknownPieceCount}}">数量待核对</text></view></block>
+    <block wx:elif="{{reportTab === 'quality'}}"><view><text class="rd-kpi-label">不良报工量</text><text class="rd-kpi">{{summary.bad}}<text>件</text></text></view><view><text class="rd-kpi-label">不良率</text><text class="rd-kpi rd-rate">{{summary.rate}}</text></view><view><text class="rd-kpi-label">涉及工单</text><text class="rd-kpi">{{summary.affectedOrders}}<text>张</text></text></view></block>
+    <block wx:else><view><text class="rd-kpi-label">报工总用时</text><text class="rd-kpi rd-duration">{{summary.duration}}</text><text class="rd-small">共{{summary.count}}笔报工</text></view><view><text class="rd-kpi-label">人均报工用时</text><text class="rd-kpi rd-duration">{{summary.average}}</text><text class="rd-small">{{summary.people}}位报工人员</text></view></block>
+   </view>
+   <view class="rd-note" wx:if="{{reportTab === 'quality'}}">按报工记录统计</view>
+   <view class="rd-chart rd-glass" wx:if="{{reportTab === 'time'}}"><view class="rd-chart-heading"><text>报工用时分布</text><text>按报工时间 · 人时</text></view><view class="rd-bars"><view wx:for="{{bars}}" wx:key="label" class="rd-bar-item"><text>{{item.value}}</text><view class="rd-bar" style="height:{{item.height}}px"/><text>{{item.label}}</text></view></view></view>
+   <view class="rd-list-heading"><text>{{reportTab === 'people' ? '人员报工' : reportTab === 'quality' ? '不良品项' : '工序用时'}}</text><button size="mini" class="native-button" bindtap="openSort">{{sort === 'default' ? '默认排序' : sort === 'name' ? '按名称' : sort === 'pieces' ? '按计件' : sort === 'count' ? '按笔数' : reportTab === 'quality' ? '按数量' : '按用时'}}<image src="/workspace/assets/ui-chevron-down.png"/></button></view>
+   <view class="rd-person-list" wx:if="{{reportTab === 'people'}}"><button size="mini" wx:for="{{people}}" wx:key="id" class="native-button rd-person" data-kind="person" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="openRecords" aria-label="{{item.name}}，良品计件{{item.pieceText}}件，{{item.duration}}，查看报工记录"><view class="rd-person-copy"><text class="rd-name">{{item.name}}</text><text class="rd-person-meta">{{item.meta}}</text></view><view class="rd-person-values"><text class="rd-person-pieces">{{item.pieceText}}<text>件</text></text><text class="rd-person-time">{{item.duration}}</text><text wx:if="{{item.unknownPieceCount}}" class="rd-piece-pending">数量待核对</text></view><image class="rd-chevron" src="/workspace/assets/ui-chevron-down.png"/></button><text class="rd-empty" wx:if="{{!people.length}}">暂无符合条件的报工</text></view>
+   <button size="mini" class="native-button rd-show-all" wx:if="{{reportTab === 'people' && peopleCount > 4 && !query}}" bindtap="toggleAllPeople">{{expanded ? '收起人员' : '查看全部' + peopleCount + '人'}}</button>
+   <view class="rd-glass rd-list" wx:if="{{reportTab === 'quality'}}"><button size="mini" wx:for="{{defects}}" wx:key="code" class="native-button rd-defect" data-kind="defect" data-id="{{item.code}}" data-name="{{item.name}}" bindtap="openRecords"><view><text class="rd-name">{{item.name}}</text><view class="rd-progress"><view style="width:{{item.width}}%"/></view></view><text>{{item.quantity}}件</text><image class="rd-chevron" src="/workspace/assets/ui-chevron-down.png"/></button></view>
+   <view class="rd-glass rd-list" wx:if="{{reportTab === 'time'}}"><button size="mini" wx:for="{{processes}}" wx:key="name" class="native-button rd-defect" data-kind="process" data-name="{{item.name}}" bindtap="openRecords"><view><text class="rd-name">{{item.name}}</text><view class="rd-progress"><view style="width:{{item.width}}%"/></view></view><text>{{item.duration}}</text><image class="rd-chevron" src="/workspace/assets/ui-chevron-down.png"/></button><text class="rd-empty" wx:if="{{!processes.length}}">暂无符合条件的报工</text></view>
+   </block>
+   <text class="rd-status" wx:if="{{qualityNote && reportTab === 'quality'}}">{{qualityNote}}</text><text class="rd-status">{{syncNote}}</text><text class="rd-updated">{{updatedText}}</text><view class="rd-refresh"><button size="mini" class="native-button" bindtap="loadReportData">更新报表</button></view>
+  </view>
+  <view class="rd-bottom-space"/>
+ </scroll-view>
+ <view class="rd-mask" wx:if="{{reportRecordsOpen}}" catchtap="closeRecords"/>
+ <view class="rd-record-sheet" wx:if="{{reportRecordsOpen}}" style="height:{{recordHeight}}px" aria-role="dialog" aria-label="{{reportRecordsTitle}}报工记录" aria-modal="true" aria-hidden="{{!!reportPanel || !!reportMenu || reportOrderMounted}}">
+  <view mark:backIgnore="{{true}}" class="rd-grip" bindtouchstart="resizeStart" catchtouchmove="resizeMove" bindtouchend="resizeEnd" bindtouchcancel="resizeEnd" aria-label="上下拖动调整窗口高度"><view/></view><view class="rd-record-heading"><view><text>{{reportRecordsTitle}}</text><text>{{dateLabel}} · {{recordTotal}}笔报工</text></view><button size="mini" class="native-button" bindtap="closeRecords" aria-label="关闭报工记录"><image src="/workspace/assets/ui-chevron-down.png"/></button></view>
+  <scroll-view enhanced="{{true}}" show-scrollbar="{{false}}" class="rd-record-list" scroll-y="true" bindscrolltolower="loadMoreRecords" lower-threshold="100"><view class="rd-record-summary">{{recordTotal}}笔报工 · {{recordDuration}}</view><view wx:for="{{reportRecords}}" wx:key="id" class="record-compact"><view class="record-head"><text class="record-person">{{item.recordWorkerText}}</text><text wx:if="{{item.recordSyncText}}" class="record-sync {{item.recordSyncWarning ? 'record-sync-warning' : ''}}">{{item.recordSyncText}}</text><text class="record-stamp">{{item.recordTimeText}}</text></view><view class="rd-record-details"><view><text class="rd-detail-label">工单编号</text><button size="mini" class="native-button" data-id="{{item.id}}" bindtap="openReportOrder">{{item.orderCode}}</button></view><view><text class="rd-detail-label">工序名称</text><text>{{item.processName || '工序未提供'}}</text></view><view><text class="rd-detail-label">产品信息</text><text>{{item.recordProductText}}</text></view><view><text class="rd-detail-label">报工时间</text><text>{{item.recordSpanText}}</text></view></view><view class="record-bottom"><view class="record-metrics"><view class="record-stat"><text class="record-label">良品数</text><text class="record-value">{{item.recordGoodText}}</text></view><view class="record-stat"><text class="record-label">不良数</text><text class="record-value record-bad">{{item.recordBadText}}</text></view><view class="record-stat"><text class="record-label">时长</text><text class="record-value record-duration">{{item.recordDurationText}}</text></view></view><button size="mini" wx:if="{{canManageReports}}" id="report-more-6-{{index}}" data-id="{{item.id}}" data-anchor="report-more-6-{{index}}" class="native-button record-action" catchtap="reportMenu" aria-label="{{item.recordWorkerText}}的报工操作"><image class="record-action-icon" src="/workspace/assets/ui-dots-vertical.png"/></button></view></view><text class="rd-status" wx:if="{{recordLoading}}">正在更新记录…</text><view class="rd-error" wx:if="{{recordError || processReportsError}}">{{recordError || processReportsError}}<button size="mini" class="native-button" bindtap="loadReportRecords">重试</button></view><text class="rd-empty" wx:if="{{!recordLoading && !recordTotal && !recordError}}">暂无符合条件的报工</text><button size="mini" class="native-button rd-show-all" wx:if="{{recordHasMore && !recordLoading}}" bindtap="loadMoreRecords">加载更多</button><view style="height:20px"/></scroll-view>
+ </view>
+ <view class="rd-mask rd-picker-mask" wx:if="{{picker}}" catchtap="closePicker" catchtouchmove="stopBubble"/>
+ <view class="rd-picker rd-filter-sheet" wx:if="{{picker && (picker.kind === 'date' || picker.kind === 'employee')}}" aria-role="dialog" aria-label="{{picker.title}}" aria-modal="true">
+  <view class="rd-filter-heading"><text>{{picker.title}}</text><button size="mini" class="native-button rd-filter-close" bindtap="closePicker" aria-label="关闭">×</button></view>
+  <block wx:if="{{picker.kind === 'employee'}}">
+   <input class="rd-employee-search" mark:backIgnore="{{true}}" placeholder="搜索姓名或小组" aria-label="搜索姓名或小组" value="{{employeeQuery}}" bindinput="searchEmployees" />
+   <scroll-view class="rd-employee-list" enhanced="{{true}}" show-scrollbar="{{false}}" scroll-y="{{true}}" style="height:{{employeeListHeight}}px">
+    <button wx:for="{{employeeRows}}" wx:key="id" size="mini" class="native-button rd-filter-option" data-id="{{item.id}}" bindtap="toggleEmployee" aria-role="checkbox" aria-checked="{{item.checked}}">
+     <view class="rd-choice-box {{item.checked ? 'rd-choice-checked' : ''}}"><image wx:if="{{item.checked}}" src="/workspace/assets/status-check.png" mode="aspectFit"/></view>
+     <text class="rd-option-title">{{item.name}}</text><text class="rd-option-caption">{{item.groupText}}</text>
+    </button>
+    <text class="rd-employee-empty" wx:if="{{!employeeRows.length}}">{{employeeQuery ? '没有匹配的员工' : '暂无员工可选'}}</text>
+   </scroll-view>
+  </block>
+  <block wx:else>
+   <view class="rd-date-list" aria-role="radiogroup" aria-label="日期范围">
+    <button wx:for="{{dateOptions}}" wx:key="mode" size="mini" class="native-button rd-filter-option" data-mode="{{item.mode}}" bindtap="datePreset" aria-role="radio" aria-checked="{{dateDraft.mode === item.mode}}">
+     <view class="rd-choice-radio {{dateDraft.mode === item.mode ? 'rd-choice-current' : ''}}"/><text class="rd-option-title">{{item.label}}</text>
+     <text class="rd-option-caption" wx:if="{{item.mode === 'yesterday'}}">{{yesterday}}</text>
+    </button>
+   </view>
+   <view class="rd-filter-dates" wx:if="{{dateDraft.mode === 'custom'}}">
+    <picker mark:backIgnore="{{true}}" mode="date" value="{{dateDraft.from}}" end="{{today}}" data-part="from" bindchange="changeDate"><view><text>开始日期</text><text>{{dateDraft.from}}</text></view></picker>
+    <picker mark:backIgnore="{{true}}" mode="date" value="{{dateDraft.to}}" end="{{today}}" data-part="to" bindchange="changeDate"><view><text>结束日期</text><text>{{dateDraft.to}}</text></view></picker>
+   </view>
+  </block>
+  <text class="rd-filter-error" wx:if="{{pickerError}}" aria-role="alert">{{pickerError}}</text>
+  <view class="rd-filter-footer">
+   <button size="mini" class="native-button rd-filter-all" wx:if="{{picker.kind === 'employee'}}" bindtap="toggleAllEmployees">{{employeeAll ? '取消全选' : '全选'}}</button>
+   <button size="mini" class="native-button rd-filter-apply" wx:if="{{picker.kind === 'employee'}}" bindtap="applyEmployees">应用</button>
+   <button size="mini" class="native-button rd-filter-apply" wx:else bindtap="applyDate">应用</button>
+  </view>
+ </view>
+ <view class="rd-picker rd-filter-sheet" wx:if="{{picker && (picker.kind === 'batch' || picker.kind === 'summary-sort')}}" aria-role="dialog" aria-label="{{picker.title}}" aria-modal="true">
+  <view class="rd-filter-heading"><text>{{picker.title}}</text><button size="mini" class="native-button rd-filter-close" bindtap="closePicker" disabled="{{batchBusy}}" aria-label="关闭">×</button></view>
+  <block wx:if="{{picker.kind === 'batch'}}">
+   <scroll-view class="rd-batch-list" scroll-y="{{true}}" enhanced="{{true}}" show-scrollbar="{{false}}" style="height:{{batchRows.length > 6 ? 252 : batchRows.length * 42}}px;" wx:if="{{batchRows.length}}">
+    <button wx:for="{{batchRows}}" wx:key="id" size="mini" class="native-button rd-filter-option" data-id="{{item.id}}" bindtap="toggleBatchRow" aria-role="checkbox" aria-checked="{{item.checked}}" disabled="{{batchBusy}}">
+     <view class="rd-choice-box {{item.checked ? 'rd-choice-checked' : ''}}"><image wx:if="{{item.checked}}" src="/workspace/assets/status-check.png" mode="aspectFit"/></view><text class="rd-option-title">{{item.label}}</text><text class="rd-option-caption">{{item.stamp}}</text>
+    </button>
+   </scroll-view>
+   <text class="rd-empty" wx:else>当前已加载的记录暂无可审批报工</text>
+   <button wx:if="{{summaryHasMore}}" size="mini" class="native-button rd-filter-all rd-batch-more" bindtap="loadMoreSummary" disabled="{{summaryLoadingMore || batchBusy}}">{{summaryLoadingMore ? '加载中' : '加载更多报工'}}</button>
+   <text wx:if="{{pickerError}}" class="rd-filter-error" aria-role="alert">{{pickerError}}</text>
+   <view class="rd-filter-footer">
+    <button wx:if="{{batchRows.length}}" size="mini" class="native-button rd-filter-all" bindtap="toggleBatchAll" disabled="{{batchBusy}}">{{batchAll ? '取消全选' : summaryHasMore ? '全选已加载' : '全选'}}</button>
+    <button size="mini" class="native-button rd-filter-apply rd-batch-apply" bindtap="submitBatchApproval" disabled="{{batchBusy || !batchRows.length}}" loading="{{batchBusy}}">{{batchBusy ? '提交中' : batchCount ? '通过审批（' + batchCount + '）' : '通过审批'}}</button>
+   </view>
+  </block>
+  <block wx:else>
+   <button wx:for="{{summarySortOptions}}" wx:key="key" size="mini" class="native-button rd-filter-option" data-key="{{item.key}}" bindtap="chooseSummarySort" aria-role="radio" aria-checked="{{summarySortDraft === item.key}}">
+    <view class="rd-choice-radio {{summarySortDraft === item.key ? 'rd-choice-current' : ''}}"/><text class="rd-option-title">{{item.label}}</text>
+   </button>
+   <view class="rd-filter-footer"><button size="mini" class="native-button rd-filter-apply" bindtap="applySummarySort">应用</button></view>
+  </block>
+ </view>
+ <view class="rd-picker" wx:if="{{picker && picker.kind === 'filter'}}" aria-role="dialog" aria-label="{{picker.title}}" aria-modal="true">
+  <view class="rd-picker-heading"><text>{{picker.title}}</text><button size="mini" class="native-button" bindtap="closePicker" aria-label="关闭筛选"><image src="/workspace/assets/ui-chevron-down.png"/></button></view>
+  <scroll-view enhanced="{{true}}" show-scrollbar="{{false}}" scroll-y="{{true}}" class="rd-picker-body">
+   <text class="rd-small">小组</text><view class="rd-chips"><button size="mini" class="native-button" data-id="" bindtap="chooseGroup">全部小组</button><button size="mini" class="native-button" wx:for="{{groups}}" wx:key="id" data-id="{{item.id}}" bindtap="chooseGroup">{{item.name}}</button></view>
+   <text class="rd-small">工序</text><view class="rd-chips"><button size="mini" class="native-button" data-name="" bindtap="chooseProcess">全部工序</button><button size="mini" class="native-button" wx:for="{{processOptions}}" wx:key="*this" data-name="{{item}}" bindtap="chooseProcess">{{item}}</button></view>
+   <button size="mini" class="native-button rd-show-all" bindtap="resetFilters">重置筛选</button>
+  </scroll-view>
+ </view>
+ <include src="../../templates/task-report-overlays.wxml"/>
+</view>
+<view class="rd-order-layer" wx:if="{{reportOrderMounted}}"><liquid-detail id="report-order-detail" visible="{{reportOrderVisible}}" order-id="{{reportOrderId}}" origin="{{reportOrderOrigin}}" reduce-motion="{{reduceMotion}}" bind:requestclose="closeReportOrder" bind:closed="reportOrderClosed"/></view>

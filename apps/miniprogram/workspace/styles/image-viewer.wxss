@@ -1,0 +1,26 @@
+.photo-root.photo-root,.photo-mask.photo-mask,.photo-shell.photo-shell,.photo-panel.photo-panel,.photo-heading.photo-heading,.photo-stage.photo-stage,.photo-footer.photo-footer,.photo-controls.photo-controls,.photo-control.photo-control,.photo-close.photo-close{box-sizing:border-box}
+.photo-root.photo-root{position:fixed;inset:0;z-index:700;color:#29435F;line-height:1.4}
+.photo-mask.photo-mask{position:absolute;inset:0;background:rgba(49,77,116,.18);opacity:0;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:opacity 140ms cubic-bezier(.23,1,.32,1)}
+.photo-mask.photo-mask.is-open.is-open{opacity:1}
+.photo-shell.photo-shell{position:fixed;pointer-events:none;transform-origin:0 0;border:1px solid rgba(255,255,255,.98);background:linear-gradient(150deg,rgba(253,255,255,.94),rgba(232,241,255,.92));box-shadow:inset 0 1px 2px #fff,inset 0 -1px 2px rgba(161,186,221,.25),0 22px 65px rgba(34,65,108,.19);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:transform 180ms cubic-bezier(.32,.72,0,1),border-radius 180ms cubic-bezier(.32,.72,0,1)}
+.photo-panel.photo-panel{position:fixed;display:flex;flex-direction:column;overflow:hidden;border-radius:28px;opacity:0;pointer-events:none;transition:opacity 140ms cubic-bezier(.23,1,.32,1)}
+.photo-panel.photo-panel.is-open.is-open{opacity:1;pointer-events:auto}
+.photo-heading.photo-heading{height:64px;min-height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 20px;font-size:15px;font-weight:650}
+.photo-close.photo-close{display:flex;width:44px;height:44px;margin:0;padding:0;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.95);border-radius:50%;background:rgba(255,255,255,.6);box-shadow:inset 0 1px 2px #fff;color:#1D4ED8}
+.photo-chevron.photo-chevron{width:19px;height:19px}
+.photo-stage.photo-stage{position:relative;flex:1;min-height:0;margin:0 12px;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.98);background:rgba(255,255,255,.9);box-shadow:inset 0 1px 3px rgba(97,127,170,.035);touch-action:none}
+.photo-image.photo-image{display:block;width:100%;height:100%;transform-origin:50% 50%;pointer-events:none}
+.photo-failed.photo-failed{height:100%;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8A9BB0}
+.photo-footer.photo-footer{height:68px;min-height:68px;display:flex;align-items:center;justify-content:center}
+.photo-controls.photo-controls{display:flex;align-items:center;padding:3px;border:1px solid rgba(255,255,255,.98);border-radius:24px;background:rgba(255,255,255,.64);box-shadow:inset 0 1px 2px #fff,0 3px 10px rgba(65,99,146,.05)}
+.photo-controls.photo-controls .photo-control.photo-control{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;color:#1D4ED8;font-size:24px;line-height:1;background:transparent}
+.photo-controls.photo-controls .photo-percent.photo-percent{width:66px;border-radius:18px;font-size:12px;font-weight:650;font-variant-numeric:tabular-nums}
+.photo-controls.photo-controls .photo-disabled.photo-disabled{opacity:.3}
+.photo-control.photo-control:active,.photo-close.photo-close:active{background:rgba(218,233,255,.7)}
+.photo-close.photo-close::after,.photo-control.photo-control::after{border:0}
+.photo-reduced.photo-reduced .photo-shell.photo-shell,.liquid-reduced.liquid-reduced .photo-shell.photo-shell{transform:none!important;transition:none!important}
+.photo-reduced.photo-reduced .photo-shell.photo-shell{opacity:0;transition:opacity 100ms ease!important}
+.photo-reduced.photo-reduced .photo-shell.photo-shell.is-open.is-open{opacity:1}
+.photo-reduced.photo-reduced .photo-mask.photo-mask,.photo-reduced.photo-reduced .photo-panel.photo-panel{transition:opacity 100ms ease}
+@media(prefers-reduced-motion:reduce){.photo-shell.photo-shell{transform:none!important;opacity:0;transition:opacity 100ms ease!important}.photo-shell.photo-shell.is-open.is-open{opacity:1}.photo-mask.photo-mask,.photo-panel.photo-panel{transition:opacity 100ms ease!important}}
+@media(prefers-reduced-transparency:reduce){.photo-shell.photo-shell{background:#F2F7FF;backdrop-filter:none;-webkit-backdrop-filter:none}.photo-mask.photo-mask{backdrop-filter:none;-webkit-backdrop-filter:none}}

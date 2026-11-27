@@ -1,0 +1,90 @@
+<import src="../../templates/image-viewer.wxml"/>
+<view class="layer-back-surface" capture-bind:touchstart="onLayerBackTouchStart" capture-bind:touchmove="onLayerBackTouchMove" capture-bind:touchend="onLayerBackTouchEnd" capture-bind:touchcancel="onLayerBackTouchCancel">
+
+<!-- Functional reference: Blacklake orders. Visual reference: our original mini-program. -->
+<view class="orders-page glass-theme workspace-root {{reduceMotion ? 'workspace-reduced' : ''}} {{workspaceInstant ? 'workspace-instant' : ''}}">
+<view class="orders-page glass-theme workspace-pane workspace-orders {{workspaceTab === 0 ? 'is-active' : ''}}" aria-hidden="{{clockoutPanel !== null || detailMounted || operationPanel !== null || !!listPanel || workspaceTab !== 0}}">
+  <view class="list-header">
+    <view class="toolbar">
+      <block wx:if="{{!searchOpen}}">
+      <view class="toolbar-copy"><button size="mini" id="order-list-scope" class="native-button scope" data-kind="scope" bindtap="openOrderListTool" hover-class="pressed" aria-label="选择工单范围"><text>{{listScopeLabel}}</text><image class="scope-arrow" src="/workspace/assets/ui-chevron-down.png"/></button></view>
+      <view class="toolbar-actions">
+        <button size="mini" class="native-button icon-button" bindtap="toggleSearch" hover-class="pressed" aria-label="搜索工单"><image src="/workspace/assets/people-search.png"/></button>
+        <button size="mini" id="order-list-sort" class="native-button icon-button" data-kind="sort" bindtap="openOrderListTool" hover-class="pressed" aria-label="工单排序"><image src="/workspace/assets/ui-sort-descending.png"/></button>
+        <button size="mini" id="order-list-filter" class="native-button icon-button" data-kind="filter" bindtap="openOrderListTool" hover-class="pressed" aria-label="筛选工单"><image src="/workspace/assets/ui-filter.png"/></button>
+      </view>
+      </block>
+      <view class="search-row" wx:else><input mark:backIgnore="{{true}}" class="search-input" placeholder="查找工单编号、产品信息" aria-label="查找工单编号、产品信息" value="{{keyword}}" bindinput="onSearch" focus="{{searchOpen}}"/><button size="mini" class="native-button" bindtap="toggleSearch" aria-label="取消搜索">取消</button></view>
+    </view>
+    <view class="status-scroll">
+      <view mark:backIgnore="{{true}}" id="segment-orders" class="status-list glass-segments segment-interactive segment-fast {{segmentTracks.orders.pressed ? 'is-pressed' : ''}} {{reduceMotion ? 'segment-reduced' : ''}}" data-segment="orders" bindtouchstart="onGlassSegmentStart" catchtouchmove="onGlassSegmentMove" bindtouchend="onGlassSegmentEnd" bindtouchcancel="onGlassSegmentCancel" aria-role="tablist"><view class="segment-lens" style="transform:translate3d({{segmentTracks.orders ? segmentTracks.orders.x + 'px' : (activeStatus === 'ALL' ? 0 : activeStatus === 'NOT_STARTED' ? 100 : activeStatus === 'IN_PROGRESS' ? 200 : 300) + '%'}},0,0) scale({{segmentTracks.orders ? segmentTracks.orders.scaleX : 1}},{{segmentTracks.orders ? segmentTracks.orders.scaleY : 1}})" aria-hidden="true"/>
+        <button size="mini" wx:for="{{statuses}}" wx:key="key" class="native-button status-pill segment-option {{activeStatus === item.key ? 'selected active' : ''}} {{segmentTracks.orders.hover === index ? 'segment-hover' : ''}}" data-segment="orders" data-index="{{index}}" bindtap="onGlassSegmentTap" hover-class="none" aria-role="tab" aria-selected="{{activeStatus === item.key}}"><view class="segment-label" style="transform:scale({{segmentTracks.orders.scales[index] || 1}})">{{item.label}}</view></button>
+      </view>
+    </view>
+  </view>
+  <scroll-view enhanced="{{true}}" scroll-anchoring="{{true}}" bindscroll="onOrderListScroll" bindscrolltolower="loadMoreOrders" lower-threshold="240" class="order-scroll" scroll-y="{{!clockoutPanel && !detailMounted && !operationPanel && !listPanel}}" show-scrollbar="{{false}}">
+    <view class="total">{{totalLabel}}</view>
+    <view class="load-error" wx:if="{{loadError}}"><text>{{loadError}}</text><button size="mini" class="native-button" bindtap="loadLive">重新读取</button></view>
+    <view id="order-card-{{item.id}}" class="order-card {{detailMounted && detailOrderId === '' + item.id ? 'liquid-source' : ''}}" wx:for="{{orders}}" wx:key="id" bindtap="openOrder" data-id="{{item.id}}" aria-role="button" aria-label="查看工单{{item.title}}">
+      <view class="order-heading">
+        <button size="mini" wx:if="{{item.imageUrl && !item.imageFailed}}" id="order-image-{{item.id}}" class="native-button thumbnail {{item.thumbnail}}" data-id="{{item.id}}" catchtap="previewOrderImage" hover-class="pressed" aria-label="放大产品图片"><image class="product-photo" src="{{item.imageUrl}}" mode="aspectFit" data-id="{{item.id}}" binderror="imageFailed"/></button><view wx:else class="thumbnail {{item.thumbnail}}" data-id="{{item.id}}" catchtap="previewOrderImage" aria-label="{{item.imageFailed ? '图片加载失败' : '暂无图片'}}"><text class="image-missing">{{item.imageFailed ? '图片加载失败' : '暂无图片'}}</text></view>
+        <view class="order-title-block">
+          <view class="badges"><text class="state {{item.status === 'IN_PROGRESS' ? 'running' : ''}}">{{item.statusText}}</text><text wx:if="{{item.priorityText}}" class="order-priority-badge tone-{{item.priorityTone}}">{{item.priorityText}}</text><view class="due" wx:if="{{item.dueText}}"><text class="remaining-label">{{item.dueLabel || '剩'}}</text><text>{{item.dueText}}</text></view></view>
+          <text class="order-title">{{item.title}}</text>
+        </view>
+        <view class="plan"><text class="plan-number {{item.planQuantity >= 1000000 ? 'plan-long' : item.planQuantity >= 10000 ? 'plan-wide' : ''}}">{{item.planQuantity === null ? '—' : item.planQuantity}}</text><text class="plan-caption">计划数</text></view>
+      </view>
+      <view class="order-meta">
+        <view class="meta-row"><image class="meta-icon" src="/workspace/assets/ui-file-description.png"/><text>工单编号：{{item.code}}</text></view>
+        <view class="meta-row"><image class="meta-icon" src="/workspace/assets/ui-clock.png"/><text>计划时间：{{item.startAt}} ~ {{item.endAt}}</text></view>
+        <view class="meta-row"><image class="meta-icon" src="/workspace/assets/ui-package.png"/><text>产品信息：{{item.product}}</text></view>
+        <view class="meta-row" wx:if="{{item.completedQuantity !== null || sourceMode === 'live'}}"><image class="meta-icon" src="/workspace/assets/ui-progress.png"/><text>工单进度：{{item.completedQuantity === null ? '未知' : item.completedQuantity}}/{{item.planQuantity === null ? '未知' : item.planQuantity}}{{item.unit || '个'}}</text></view>
+      </view>
+      <scroll-view enhanced="{{true}}" mark:backIgnore="{{true}}" class="process-scroll" scroll-x="true" show-scrollbar="{{false}}" wx:if="{{item.processes.length}}">
+        <view class="process-track"><view class="process-step" wx:for="{{item.processes}}" wx:for-item="process" wx:for-index="processIndex" wx:key="id" data-id="{{item.id}}" data-process="{{process.id}}" catchtap="openOrder" aria-role="button" aria-label="查看{{process.name}}报工"><view class="process-node {{process.closed ? 'process-closed' : ''}}"><text>{{process.percent}}</text></view><text class="process-name">{{process.name}}</text><view class="process-line" wx:if="{{processIndex < item.processes.length - 1}}"/></view></view>
+      </scroll-view>
+      <button size="mini" class="native-button load-processes" wx:if="{{sourceMode === 'live' && !item.processesLoaded}}" data-id="{{item.id}}" catchtap="loadProcesses" disabled="{{item.processesRequesting}}">{{item.processesLoading ? '工序同步中…' : item.processesError ? '工序读取失败，点击重试' : '查看工序进度'}}</button>
+      <text class="no-processes" wx:if="{{sourceMode === 'live' && item.processesLoaded && !item.processes.length}}">暂无工序资料</text>
+      <view class="card-actions" wx:if="{{canDispatch ? item.status === 'NOT_STARTED' || item.status === 'IN_PROGRESS' : item.processes.length}}"><button size="mini" wx:if="{{canDispatch}}" class="native-button quick-action" data-id="{{item.id}}" catchtap="openDispatch" hover-class="pressed">派工</button><button size="mini" wx:else class="native-button quick-action" catchtap="pendingReference" hover-class="pressed">快捷操作</button></view>
+    </view>
+    <view class="empty-state" wx:if="{{!orders.length && !loading && !loadError}}">{{sourceMode === 'live' ? '已加载范围内暂无匹配工单' : '暂无匹配工单'}}</view>
+    <button size="mini" class="native-button load-more" wx:if="{{sourceMode === 'live' && (hasMore || loading)}}" bindtap="loadLive" data-more="{{true}}" disabled="{{loading}}">{{loading ? '正在读取…' : '加载更多工单'}}</button>
+    <view class="scroll-bottom"/>
+  </scroll-view>
+  <button size="mini" wx:if="{{!clockoutPanel && !operationPanel && !listPanel}}" class="native-button scan-button" disabled="{{scanning}}" bindtap="scanOrder" hover-class="pressed" aria-label="扫描工单"><view class="scan-symbol" aria-hidden="true"><view class="scan-corner corner-tl"/><view class="scan-corner corner-tr"/><view class="scan-corner corner-bl"/><view class="scan-corner corner-br"/></view><text>扫码</text></button>
+</view>
+<view class="workspace-pane workspace-tasks {{workspaceTab === 1 ? 'is-active' : ''}}" aria-hidden="{{clockoutPanel !== null || workspaceTab !== 1}}"><leader-tasks id="leader-tasks-panel" wx:if="{{tasksMounted}}" active="{{workspaceTab === 1}}" reduce-motion="{{reduceMotion}}" bind:modalchange="onTaskWorkspaceState"/></view>
+<view class="workspace-pane workspace-reports {{workspaceTab === 3 ? 'is-active' : ''}}"><reports-dashboard id="reports-panel" wx:if="{{reportsMounted}}" active="{{workspaceTab === 3}}" reduce-motion="{{reduceMotion}}" bind:statechange="onReportWorkspaceState"/></view>
+  <view mark:backIgnore="{{true}}" class="bottom-nav {{reduceMotion ? 'nav-reduced' : ''}} {{navPressed ? 'is-pressed' : ''}} {{workspaceTaskSheet || workspaceReportModal ? 'workspace-nav-hidden' : ''}}" bindtouchstart="onGlassNavStart" catchtouchmove="onGlassNavMove" bindtouchend="onGlassNavEnd" bindtouchcancel="cancelGlassNav" aria-label="主导航" aria-hidden="{{clockoutPanel !== null || detailMounted || workspaceTaskSheet || workspaceReportModal || operationPanel !== null || !!listPanel}}">
+    <view class="nav-platter" style="transform:translate3d({{navBarShift}}px,0,0) scale({{navBarScaleX}},{{navBarScaleY}})">
+    <view class="nav-glass-base" aria-hidden="true"/>
+    <view class="nav-finger-glow" style="opacity:{{navLift * .2845}};transform:translate3d({{navGlowX - 46.5}}px,0,0)" aria-hidden="true"/>
+    <button size="mini" wx:for="{{navItems}}" wx:key="index" id="{{item.index === 2 ? 'nav-clockout' : 'nav-item-' + item.index}}" class="native-button nav-item {{item.index === navActiveIndex ? 'active' : ''}} {{item.index === 2 && clockoutPanel && clockoutMotion ? 'clockout-source-hidden' : ''}}" style="left:{{item.left}}px;width:{{navPillWidth}}px" data-index="{{item.index}}" bindtap="onGlassNavTap" hover-class="none" aria-label="{{item.label}}{{item.index === navActiveIndex ? '，当前页面' : ''}}">
+      <view class="nav-symbols"><image src="/workspace/assets/liquid-nav-{{item.icon}}-gray.png"/><text>{{item.label}}</text></view>
+    </button>
+    <view class="nav-lens" style="width:{{navPillWidth}}px;transform:translate3d({{navLensLeft}}px,0,0)" aria-hidden="true">
+      <view class="nav-lens-surface" style="transform:scale({{1 + navLift * 16 / navPillWidth}},{{1 + navLift * 16 / 54}})"/>
+      <view class="nav-lens-window" style="transform:scale({{1 + navLift * 16 / navPillWidth}},{{1 + navLift * 16 / 54}})">
+        <view class="nav-lens-counter" style="transform:scale({{1 / (1 + navLift * 16 / navPillWidth)}},{{1 / (1 + navLift * 16 / 54)}})">
+        <view class="nav-tinted-track" style="transform:translate3d({{-navLensLeft}}px,0,0)">
+          <view wx:for="{{navItems}}" wx:key="index" class="nav-tinted-item" style="left:{{item.left}}px;width:{{navPillWidth}}px">
+            <view class="nav-symbols" style="transform:scale({{1 + navLift * .16}})"><image src="/workspace/assets/liquid-nav-{{item.icon}}-blue.png"/><text>{{item.label}}</text></view>
+          </view>
+        </view>
+        </view>
+      </view>
+    </view>
+    </view>
+  </view>
+  <!-- shared-navigation-end -->
+</view>
+<liquid-detail id="workspace-detail" wx:if="{{detailMounted}}" visible="{{detailVisible}}" origin="{{detailOrigin}}" order-id="{{detailOrderId}}" process-id="{{detailProcessId}}" reduce-motion="{{reduceMotion}}" bind:requestclose="closeDetail" bind:requestopen="reopenDetail" bind:closed="detailClosed"/>
+
+<template wx:if="{{imageViewer}}" is="glass-image-viewer" data="{{...imageViewer}}"/>
+<include src="../../templates/order-operations.wxml"/>
+<include src="../../templates/clockout.wxml"/>
+<include src="../../templates/order-list-tools.wxml"/>
+
+</view>
+<view wx:if="{{backHint}}" class="layer-back-hint layer-back-hint-{{backHint.side}}" style="top:{{backHint.y}}px;opacity:{{backHint.opacity}};transform:{{backHint.transform}}" aria-hidden="true"><image src="/workspace/assets/ui-chevron-down.png"/></view>
+<page-container show="{{backGuardVisible}}" overlay="{{false}}" duration="{{0}}" position="center" close-on-slide-down="{{false}}" custom-style="width:0;height:0;min-height:0;padding:0;background:transparent;overflow:hidden;" bindbeforeleave="onLayerBackBeforeLeave" bindafterleave="onLayerBackAfterLeave"/>

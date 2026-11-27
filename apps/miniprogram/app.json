@@ -1,0 +1,19 @@
+{
+  "pages": [
+    "pages/report/report",
+    "pages/dispatch/dispatch",
+    "pages/login/login",
+    "pages/recent/recent"
+  ],
+  "subpackages": [{"root":"workspace","pages":["pages/orders/orders","pages/tasks/tasks","pages/details/details","pages/dispatch/dispatch","pages/worker/worker"]}],
+  "window": {
+    "navigationBarTitleText": "安心报工",
+    "navigationBarBackgroundColor": "#F4F8FF",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F4F8FF",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,9 @@
+.native-button.native-button{display:block;box-sizing:border-box;padding:0;margin:0;border:0;border-radius:0;background:transparent;font:inherit;color:inherit;line-height:inherit;min-width:0}.native-button.native-button::after{border:0}.native-button.native-button.nav-item[disabled]{background:transparent;color:#53657C}
+page { height: 100%; background: #F1F5F9; color: #0F172A; font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 30rpx; }
+view, scroll-view, button, input { box-sizing: border-box; }
+button { padding: 0; margin: 0; border: 0; border-radius: 0; background: transparent; font: inherit; color: inherit; line-height: inherit; }
+button::after { border: 0; }
+.pressed.pressed { opacity: .65; }
+@import "./styles/glass.wxss";
+@import "./styles/controls.wxss";
+@import "./styles/image-viewer.wxss";

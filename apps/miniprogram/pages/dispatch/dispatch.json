@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "生产派单",
+  "disableScroll": true,
+  "usingComponents": {
+    "order-orb": "/components/order-orb/index"
+  }
+}

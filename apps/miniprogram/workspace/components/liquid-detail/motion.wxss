@@ -1,0 +1,17 @@
+:host{display:block;height:0;min-height:0;flex:0 0 0;position:static}
+.liquid-root.liquid-root{position:static;height:0;color:#0F172A}
+.liquid-mask.liquid-mask{position:fixed;inset:0;z-index:200;background:rgba(36,56,86,.22);opacity:0;transition:opacity 220ms cubic-bezier(.23,1,.32,1);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.liquid-mask.liquid-mask.is-open.is-open{opacity:1}
+.liquid-shell.liquid-shell{position:fixed;z-index:201;box-sizing:border-box;transform-origin:0 0;pointer-events:none;background:rgba(248,251,255,.88);border:1px solid rgba(255,255,255,.96);box-shadow:inset 0 1px 2px rgba(255,255,255,.98),inset 0 -1px 2px rgba(154,174,202,.24),0 18px 54px rgba(23,43,77,.18);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transition:transform 280ms cubic-bezier(.32,.72,0,1),border-radius 280ms cubic-bezier(.32,.72,0,1)}
+.liquid-content.liquid-content{position:fixed;z-index:202;box-sizing:border-box;overflow:hidden;border-radius:24px;opacity:0;pointer-events:none;transition:opacity 110ms ease}
+.liquid-content.liquid-content.is-open.is-open{opacity:1;pointer-events:auto;transition:opacity 170ms ease 70ms}
+.liquid-content.liquid-content .detail-page.detail-page.glass-theme.glass-theme{background:transparent;background-image:none}
+.liquid-content.liquid-content .detail-header.detail-header{background:rgba(255,255,255,.2);border-color:rgba(176,197,222,.3);padding:10px 12px;min-height:72px}
+.liquid-content.liquid-content .detail-header.detail-header .back-entry.back-entry image{transform:none}
+.liquid-content.liquid-content .detail-hero.detail-hero{margin:12px;background:rgba(255,255,255,.48);box-shadow:inset 0 1px 1px rgba(255,255,255,.94),0 4px 14px rgba(44,77,120,.035)}
+.liquid-content.liquid-content .detail-dock.detail-dock{background:rgba(255,255,255,.48);padding-bottom:14px}
+.liquid-reduced.liquid-reduced .liquid-shell.liquid-shell{transform:none!important;border-radius:24px!important;opacity:0;transition:opacity 100ms ease}
+.liquid-reduced.liquid-reduced .liquid-shell.liquid-shell.is-open.is-open{opacity:1}
+.liquid-reduced.liquid-reduced .liquid-content.liquid-content,.liquid-reduced.liquid-reduced .liquid-content.liquid-content.is-open.is-open,.liquid-reduced.liquid-reduced .liquid-mask.liquid-mask{transition:opacity 100ms ease}
+@media(prefers-reduced-motion:reduce){.liquid-shell.liquid-shell{transform:none!important;border-radius:24px!important;opacity:0;transition:opacity 100ms ease}.liquid-shell.liquid-shell.is-open.is-open{opacity:1}.liquid-content.liquid-content,.liquid-content.liquid-content.is-open.is-open,.liquid-mask.liquid-mask{transition:opacity 100ms ease}}
+@media(prefers-reduced-transparency:reduce){.liquid-shell.liquid-shell{background:#F8FBFF;backdrop-filter:none;-webkit-backdrop-filter:none}.liquid-mask.liquid-mask{backdrop-filter:none;-webkit-backdrop-filter:none}}

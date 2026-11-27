@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "source": "blacklake-output-history-through-2026-08-24-and-user-confirmed-2026-11-06",
+  "reasons": [
+    { "code": "BL202501090006", "name": "车缝不良" },
+    { "code": "BL202501090005", "name": "染色不良" },
+    { "code": "BL202501090003", "name": "原料不良" },
+    { "code": "BL202501090004", "name": "破皮不良" },
+    { "code": "BL202501090002", "name": "刺绣不良" },
+    { "code": "BL202501090001", "name": "尺寸不良" },
+    { "code": "BL202504030001", "name": "图案不符" }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "blacklake-simple-reporting",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env apps/api/src/server.mjs",
+    "dev": "node --env-file-if-exists=.env --watch apps/api/src/server.mjs",
+    "test": "node --test apps/api/test/*.test.mjs apps/admin/test/*.test.mjs apps/miniprogram/test/*.test.mjs",
+    "check": "node --check apps/api/src/server.mjs && node --check apps/api/src/wechat-client.mjs && node --check apps/api/src/process-inference.mjs && node --check apps/api/src/defect-reasons.mjs && node --check apps/api/src/work-time.mjs && node --check apps/api/src/anomaly-rules.mjs && node --check apps/api/src/entry-profile.mjs && node --check apps/api/src/dispatch.mjs && node --check apps/api/scripts/resolve-assignment.mjs && node --check apps/api/scripts/query-blacklake.mjs && node --check apps/api/scripts/export-blacklake-outputs.mjs && node --check apps/api/scripts/analyze-process-flows.mjs && node --check apps/api/scripts/analyze-coverage-templates.mjs && node --check apps/api/scripts/build-process-inference-rules.mjs && node --check apps/admin/app.js && node --check apps/miniprogram/app.js && node --check apps/miniprogram/utils/work-time.js && node --check apps/miniprogram/pages/login/login.js && node --check apps/miniprogram/pages/report/report.js && node --check apps/miniprogram/pages/dispatch/dispatch.js && node --check apps/miniprogram/pages/recent/recent.js && node --check apps/api/src/homepage-agent.mjs && node --check apps/api/src/agent-runtime.mjs && node --check apps/api/src/agent-tools.mjs && node --check apps/api/src/agent-store.mjs && node --check apps/admin/agent-chat.js && node --check apps/api/src/app.mjs && node --check apps/api/src/blacklake-client.mjs && node --check apps/api/src/weekly-data.mjs && node --check apps/api/src/weekly-store.mjs && node --check apps/api/src/production-insights.mjs && node --check apps/api/src/insight-runtime.mjs && node --check apps/admin/weekly-report.js && node --check apps/api/src/dispatch-prediction.mjs && node --check apps/api/src/dispatch-prediction-store.mjs && node --check apps/admin/dispatch-feedback.js && node --check apps/api/src/task-recovery.mjs && node --check apps/admin/task-recovery.js && node --check apps/api/src/management.mjs && node --check apps/admin/management.js && node --check apps/api/src/station-detail.mjs && node --check apps/api/src/local-members.mjs && node --check apps/admin/local-members.js && node --check apps/api/src/leader-reports.mjs && node --check apps/api/src/report-production.mjs && node --check apps/api/src/report-custom-fields.mjs && node --check apps/api/src/native-report-correction.mjs && node --check apps/miniprogram/utils/report-editor-model.js && node --check apps/api/src/leader-clockout.mjs && node --check apps/api/src/overnight-clockout.mjs && node --check apps/api/src/integration-jobs.mjs && node --check apps/api/src/blacklake-sync.mjs && node --check apps/api/src/report-outbox.mjs && node --check apps/admin/data-sync.js",
+    "operator:add": "node --env-file-if-exists=.env apps/api/scripts/add-operator.mjs",
+    "assignment:resolve": "node --env-file-if-exists=.env apps/api/scripts/resolve-assignment.mjs",
+    "blacklake:query": "node --env-file-if-exists=.env apps/api/scripts/query-blacklake.mjs",
+    "blacklake:outputs": "node --env-file-if-exists=.env apps/api/scripts/export-blacklake-outputs.mjs",
+    "blacklake:process-analysis": "node apps/api/scripts/analyze-process-flows.mjs",
+    "blacklake:process-rules": "node apps/api/scripts/build-process-inference-rules.mjs",
+    "blacklake:flow-coverage": "node apps/api/scripts/analyze-coverage-templates.mjs",
+    "dispatch:prediction-rules": "node apps/api/scripts/build-dispatch-prediction-rules.mjs"
+  },
+  "engines": {
+    "node": ">=22.9"
+  },
+  "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.75",
+    "ai": "7.0.148",
+    "zod": "4.6.7"
+  }
+}

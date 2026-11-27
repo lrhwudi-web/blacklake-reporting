@@ -1,0 +1,313 @@
+<view class="dispatch-page {{stage === 'scan' ? 'dispatch-page-scan scan-redesign' : ''}} {{!isFloor3 && stage === 'map' ? 'dispatch-page-site-map' : ''}} {{!isFloor3 && (stage === 'people' || stage === 'process') ? 'dispatch-page-grouped' : ''}} {{!isFloor3 && (stage === 'people' || stage === 'process' || stage === 'stations') ? 'dispatch-page-workspace' : ''}} {{stage === 'scan' && skuSearchStarted ? 'scan-search-active' : ''}}" wx:if="{{ready}}">
+  <view wx:if="{{isFloor3 || (stage !== 'people' && stage !== 'process')}}" class="dispatch-header {{stage === 'scan' ? 'scan-header' : ''}}">
+    <view>
+      <text class="dispatch-eyebrow">{{floorName}} · {{stage === 'scan' ? roleName : operator.name}}</text>
+      <text class="dispatch-title">{{stage === 'scan' ? '扫描工单' : (stage === 'stations' ? '工位管理' : (isFloor3 ? '绣花机分配' : (stage === 'map' ? '现场工位' : '人员派工')))}}</text>
+    </view>
+    <button wx:if="{{stage !== 'scan'}}" class="history-entry" bindtap="openHistory" disabled="{{submitting}}">记录</button>
+    <view class="role-pill" bindtap="logout" hover-class="soft-pressed" aria-role="button" aria-label="{{operator.name}}，{{roleName}}，退出登录"><view class="scan-avatar-letter" wx:if="{{stage === 'scan'}}">{{operator.name[0]}}</view><text wx:else>{{roleName}}</text></view>
+  </view>
+
+  <scroll-view class="scan-panel" scroll-y="true" scroll-into-view="{{skuSearchStarted && !skuSearching ? 'leader-sku-section' : ''}}" wx:if="{{stage === 'scan' && !historyOpen}}">
+    <view class="scan-content {{skuSearchStarted ? 'has-results' : ''}}">
+    <view class="scan-primary">
+      <view class="scanner-frame {{submitting || skuSearching || scanning ? 'scanner-disabled' : ''}}" bindtap="scanWorkOrder"
+        hover-class="{{submitting || skuSearching ? 'none' : 'scanner-pressed'}}" hover-stay-time="100"
+        aria-role="button" aria-disabled="{{submitting || skuSearching || scanning}}" aria-label="扫描工单二维码">
+        <image class="scanner-visual scanner-corners" src="/assets/scan-corners-blue.png" mode="aspectFit" aria-hidden="true"></image>
+        <image class="scanner-code" src="/assets/scan-qr-muted.png" mode="aspectFit" aria-hidden="true"></image>
+        <view class="scanner-beam" aria-hidden="true"></view>
+        <text class="scanner-reading" wx:if="{{submitting || scanning}}">{{scanning ? '正在扫码…' : '读取中…'}}</text>
+      </view>
+    </view>
+    <text class="scanner-hint">将工单二维码放入框内</text><text class="scanner-sub">识别后进入派工流程</text>
+    <button class="leader-scan-action" bindtap="scanWorkOrder" disabled="{{submitting || scanning || skuSearching}}"><image src="/assets/scan-camera-white.png" aria-hidden="true"/><text>{{scanning ? '正在扫码…' : (submitting ? '正在读取…' : '开始扫码')}}</text></button>
+    <text class="scan-error" wx:if="{{scanError}}">{{scanError}}</text>
+    <view class="sku-search" id="leader-sku-section">
+      <view class="scan-divider"><view></view><text>或输入 SKU 查询</text><view></view></view>
+      <view class="sku-search-row">
+        <input class="sku-search-input" value="{{skuQuery}}" placeholder="输入 SKU" placeholder-class="sku-placeholder" maxlength="80" confirm-type="search"
+          bindinput="onSkuInput" bindconfirm="searchSkuWorkOrders" aria-label="SKU" />
+        <button class="sku-search-button" disabled="{{skuSearching || submitting}}" bindtap="searchSkuWorkOrders">{{skuSearching ? '查询中' : '查询'}}</button>
+      </view>
+      <text class="sku-search-error" wx:if="{{skuSearchError}}">{{skuSearchError}}</text>
+      <view class="sku-results" wx:if="{{skuResults.length}}">
+        <text class="sku-results-title">{{skuResults.length}} 张工单</text>
+        <view class="sku-results-list">
+          <view class="sku-result" wx:for="{{skuResults}}" wx:key="imageKey" data-project-id="{{item.projectId}}"
+            bindtap="selectSkuWorkOrder" aria-role="button" aria-label="选择工单 {{item.projectCode}}">
+            <view class="sku-result-picture" wx:if="{{item.productImageUrls.length && !item.imageFailed}}" data-project-id="{{item.projectId}}" data-image-url="{{item.productImageUrls[0]}}" data-image-revision="{{item.imageRevision}}" catchtap="previewSkuImage" aria-role="button" aria-label="放大产品图片">
+              <image src="{{item.productImageUrls[0]}}" mode="aspectFit" lazy-load="true" data-project-id="{{item.projectId}}" data-image-url="{{item.productImageUrls[0]}}" data-image-revision="{{item.imageRevision}}" binderror="onSkuImageError"/><text class="sku-result-zoom">点图放大</text>
+            </view>
+            <view class="sku-result-picture sku-result-no-image" wx:else><text>{{item.imageFailed ? '图片加载失败' : '暂无图片'}}</text></view>
+            <view class="sku-result-info"><text class="sku-result-code">{{item.projectCode}}</text>
+              <text class="sku-result-detail">{{item.productName}}</text><text class="sku-result-detail">SKU {{item.productCode}}</text></view>
+            <image class="sku-result-arrow" src="/assets/scan-chevron-light.png" aria-hidden="true"/>
+          </view>
+        </view>
+      </view>
+    </view>
+    </view>
+  </scroll-view>
+
+  <view class="map-screen" wx:if="{{stage === 'map'}}">
+    <view class="order-bar">
+      <view class="back-button" bindtap="leaveMap" hover-class="soft-pressed" aria-role="button">返回</view>
+      <view class="order-summary"><text>{{!isFloor3 && !workOrder ? '8楼现场' : '当前工单'}}</text><text class="order-code">{{workOrder.projectCode}}</text></view>
+      <view class="available-badge"><view class="status-dot"></view>{{isFloor3 ? availableCount + ' 可分配' : units.length + ' 个工位'}}</view>
+    </view>
+
+    <view class="map-card">
+      <view class="map-title-row">
+        <view><text class="map-heading">{{isFloor3 ? '选择绣花机' : (placementOperatorId ? '点击临时使用的工位' : '查看现场工位')}}</text><text>单指拖动，双指缩放</text></view>
+        <view class="live-badge" bindtap="loadOverview"><view class="status-dot"></view>{{overviewError ? '刷新失败 · 重试' : '定时更新'}}</view>
+      </view>
+      <view class="status-legend">
+        <view><view class="legend-dot available"></view>可分配</view><view><view class="legend-dot scheduled"></view>已分配</view>
+        <view><view class="legend-dot running"></view>生产中</view><view><view class="legend-dot attention"></view>待处理</view>
+        <view wx:if="{{isFloor3}}"><view class="legend-dot unmapped"></view>未绑定</view>
+      </view>
+
+      <view class="map-shell">
+      <movable-area class="map-viewport" style="height: {{mapViewportHeight}}px;">
+        <movable-view wx:if="{{mapGestureReady}}" class="map-movable" direction="all" scale="true" scale-min="0.9" scale-max="2.2"
+          animation="false" damping="40" friction="4" out-of-bounds="false"
+          style="width: {{mapCanvasSize}}px; height: {{mapCanvasSize}}px; left: {{mapCanvasOffsetX}}px; top: {{mapCanvasOffsetY}}px;"
+          bindscale="onMapScale">
+          <view class="map-rotator" style="transform: rotate({{mapAngle}}deg);">
+            <view class="map-content {{isFloor3 ? 'floor3-map-content' : 'floor8-map-content'}}">
+            <image wx:if="{{floorImageVisible}}" class="floor-image" mode="scaleToFill" fade-in="false"
+              src="{{isFloor3 ? '/assets/floor3-digital-twin.jpg' : '/assets/floor8-digital-twin.jpg'}}"
+              bindload="onFloorImageLoad" binderror="onFloorImageError"></image>
+            <view wx:if="{{floorImageError}}" class="map-image-error" catchtap="retryFloorImage">模型加载失败，点击重试</view>
+
+            <block wx:if="{{isFloor3}}">
+              <view wx:for="{{units}}" wx:key="id" class="floor3-unit-target {{item.state}} {{item.operatorMapped ? '' : 'unmapped'}}"
+                style="left: {{item.x}}%; top: {{item.y}}%;" data-unit-id="{{item.id}}" bindtap="selectUnit"
+                hover-class="unit-target-pressed" hover-stay-time="80"
+                aria-role="button" aria-label="{{item.id}}，{{item.operatorMapped ? item.state : '未绑定员工'}}">
+                <view class="unit-chip">
+                  <text>{{item.id}}</text><view class="unit-dot"></view>
+                </view>
+              </view>
+            </block>
+
+            <block wx:else>
+              <view wx:for="{{units}}" wx:key="id" class="floor8-unit-target {{item.kind}} {{item.state}}"
+                style="left: {{item.x}}%; top: {{item.y}}%;" data-unit-id="{{item.id}}" bindtap="selectUnit"
+                hover-class="unit-target-pressed" hover-stay-time="80"
+                aria-role="button" aria-label="{{item.id}}，{{item.state}}">
+                <view class="unit-chip">
+                  <text>{{item.shortLabel}}</text><view class="unit-dot"></view>
+                </view>
+              </view>
+            </block>
+            </view>
+          </view>
+        </movable-view>
+      </movable-area>
+
+      <view class="map-reset-button" bindtap="resetMap" hover-class="map-reset-pressed" aria-role="button" aria-label="重置地图">
+        <view class="reset-icon"><view class="reset-arc"></view><view class="reset-arrow"></view></view>
+      </view>
+      <view class="map-readout">{{mapScaleText}}% · {{mapAngle}}°</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="sheet-mask station-detail-mask" wx:if="{{unitDetailOpen}}" bindtap="closeUnitDetail"></view>
+  <view class="assignment-sheet station-detail-sheet" wx:if="{{unitDetailOpen}}">
+    <view class="sheet-grabber"></view>
+    <view class="sheet-heading"><view><text class="sheet-unit-title">{{unitDetailId}}</text><text>工位人员与当前任务</text></view><button bindtap="closeUnitDetail" aria-label="关闭工位详情">×</button></view>
+    <view class="station-detail-toolbar"><text>{{unitDetail ? '查询于 ' + unitDetail.updatedLabel : '读取当前任务'}}</text><button bindtap="refreshUnitDetail" disabled="{{unitDetailLoading}}">{{unitDetailLoading ? '读取中…' : '刷新'}}</button></view>
+    <view class="station-detail-error" wx:if="{{unitDetailError}}">{{unitDetailError}}{{unitDetail ? ' 以下保留上次数据。' : ''}}</view>
+    <scroll-view scroll-y="true" class="station-detail-body">
+      <block wx:if="{{unitDetail}}">
+        <view class="station-residents"><text class="station-section-title">常驻人员</text><view class="station-resident-tags"><text wx:for="{{unitDetail.residents}}" wx:key="blacklakeOperatorId">{{item.name}} · {{item.activeHere ? '本工位生产中' : '常驻绑定'}}</text></view><text wx:if="{{!unitDetail.residents.length}}" class="station-detail-note">暂未绑定常驻人员</text></view>
+        <text class="station-section-title">当前任务 · {{unitDetail.assignments.length}} 笔</text>
+        <view wx:if="{{!unitDetail.assignments.length}}" class="station-empty">未发现本系统未结束任务</view>
+        <view class="station-task-card" wx:for="{{unitDetail.assignments}}" wx:key="id" wx:for-item="task">
+          <view class="station-task-heading"><text>{{task.operatorName}}</text><text class="station-task-status {{task.status === 'IN_PROGRESS' ? 'running' : ''}}">{{task.statusLabel}}</text></view>
+          <text class="station-task-order">{{task.projectCode}} · {{task.productName}}</text>
+          <text class="station-task-current">{{task.status === 'IN_PROGRESS' ? '正在做' : (task.status === 'READY' ? '待做' : '本地任务工序')}}：{{task.processName}}</text>
+          <text class="station-detail-note" wx:if="{{task.startedAt}}">开始 {{task.startedAt}}</text>
+          <scroll-view class="station-process-scroll" scroll-x="true" scroll-into-view="{{task.scrollTarget}}" scroll-with-animation="{{false}}" enable-flex="true">
+            <view class="station-process-track">
+              <view wx:for="{{task.steps}}" wx:key="taskId" wx:for-item="process" class="station-process-step {{process.current ? 'current' : ''}}" id="{{process.domId}}">
+                <view class="station-step-main"><view class="station-step-dot {{process.tone}}"></view><text class="station-step-percent {{process.tone}}">{{process.percentLabel}}</text><text class="station-step-name">{{process.processName}}</text><view class="station-step-line"></view></view>
+                <text class="station-step-state">{{process.current ? (task.status === 'READY' ? '待做工序 · ' : '当前任务 · ') : ''}}{{process.statusLabel}}</text>
+              </view>
+            </view>
+          </scroll-view>
+          <text class="station-detail-warning" wx:if="{{task.progressError}}">{{task.progressError}}</text>
+          <text class="station-detail-warning" wx:if="{{task.orderUnconfirmed}}">部分工序顺序未确认</text>
+          <text class="station-detail-warning" wx:if="{{task.currentProcessClosed}}">黑湖工序已结束，本地任务尚未结束，请核对。</text>
+        </view>
+        <view class="station-detail-scope"><text>百分比为工单各工序累计已报合格数 / 计划数，不是个人完成率；达到100%不代表工序关闭。工序数据最多缓存30秒。</text><text>仅本系统未结束任务与常驻绑定，不代表人员实时到岗。</text></view>
+      </block>
+      <text class="station-empty" wx:elif="{{unitDetailLoading}}">正在读取工位任务…</text>
+    </scroll-view>
+    <view class="station-detail-actions"><button wx:if="{{!isFloor3}}" bindtap="maintainUnitResidents">维护常驻人员</button><button wx:if="{{unitDetailCanDispatch}}" class="sheet-primary" bindtap="dispatchFromUnitDetail">为该机台派工</button><button bindtap="closeUnitDetail">返回地图</button></view>
+  </view>
+
+  <view class="notice" wx:if="{{isFloor3 && notice && !sheetOpen && !historyOpen}}" bindtap="openHistory" aria-role="button">✓ {{notice}}</view>
+
+  <view class="dispatch-flow-header" wx:if="{{!isFloor3 && (stage === 'people' || stage === 'process')}}">
+    <view class="people-topbar"><view class="people-header-copy"><text class="people-order">{{floorName}} · 组长 · 工单 {{workOrder.projectCode}}</text><text class="people-title">{{stage === 'people' ? '选择人员' : '选择工序'}}</text></view><button class="people-menu people-avatar" bindtap="openPeopleMenu" aria-label="更多操作"><view>{{operator.name ? operator.name[0] : ''}}</view></button></view>
+    <view class="people-stepper"><button class="people-step {{stage === 'people' ? 'step-active' : 'step-done'}}" bindtap="backToPeople" disabled="{{submitting || stage === 'people'}}"><view class="step-number {{stage === 'people' ? 'current' : 'done'}}"><text wx:if="{{stage === 'people'}}">1</text><image wx:else src="/assets/step-check.png" aria-hidden="true"/></view><text>选人</text></button><view class="step-line {{stage === 'process' ? 'done' : ''}}"></view><view class="people-step {{stage === 'process' ? 'step-active' : ''}}"><text class="step-number {{stage === 'process' ? 'current' : ''}}">2</text><text>选工序</text></view></view>
+  </view>
+  <view class="grouped-people" wx:if="{{!isFloor3 && stage === 'people'}}">
+    <view class="overview-error" wx:if="{{overviewError}}" bindtap="loadOverview">{{overviewError}} · 重试</view>
+    <view class="direct-success" wx:if="{{notice}}" bindtap="openHistory">{{notice}}</view>
+    <view class="people-browser">
+      <scroll-view scroll-y="true" class="people-group-rail"><view class="people-group {{item.index === departmentIndex ? 'active' : ''}}" wx:for="{{peopleGroups}}" wx:key="index" data-group-index="{{item.index}}" bindtap="choosePeopleGroup" aria-role="button" aria-label="{{item.label}}，{{item.count}}人"><text>{{item.label}}</text><text>{{item.count}}</text></view></scroll-view>
+      <view class="people-group-main">
+        <view class="people-search-wrap"><view class="worker-search people-search"><icon type="search" size="16" color="#64748B"/><input value="{{employeeQuery}}" bindinput="onEmployeeQuery" placeholder="搜索姓名" bindfocus="onPeopleSearchFocus" bindblur="onPeopleSearchBlur" aria-label="搜索姓名"/></view></view>
+        <scroll-view class="people-grid-scroll" scroll-y="true"><view class="people-grid"><view wx:for="{{groupEmployees}}" wx:key="blacklakeOperatorId" class="person-tile {{item.selected ? 'selected' : ''}} {{item.available || item.canQueue ? '' : 'busy'}}" data-operator-id="{{item.blacklakeOperatorId}}" bindtap="chooseEmployee" aria-role="checkbox" aria-checked="{{item.selected}}" aria-disabled="{{!item.available && !item.canQueue && !item.selected}}" aria-label="{{item.name}}，{{item.available ? '可派' : (item.canQueue ? '可排下一单' : '待处理')}}"><checkbox checked="{{item.selected}}" color="#1D4ED8" class="person-tile-checkbox"/><text class="person-tile-name">{{item.name}}</text><text class="person-tile-busy {{item.canQueue ? 'person-tile-queue' : ''}}" wx:if="{{!item.available}}">{{item.dispatchStateLabel || '忙碌中'}}</text></view></view><text class="worker-empty" wx:if="{{overviewLoaded && !overviewError && !groupEmployees.length}}">没有匹配人员</text></scroll-view>
+      </view>
+    </view>
+    <view class="people-selection-dock"><view class="people-selected-heading"><button class="people-selection-count" bindtap="openSelectedPeople">已选 <text>{{selectedEmployeeIds.length}}</text> 人</button><button class="people-select-group" bindtap="selectGroupAvailable" disabled="{{submitting || !peopleGroupAvailableCount}}">{{employeeQuery ? '选搜索可派' : '选本组可派'}}</button><button class="people-clear-all" bindtap="clearSelectedEmployees" disabled="{{submitting || !selectedEmployeeIds.length}}">清空</button></view><text class="selection-warning" wx:if="{{selectionWarning}}">{{selectionWarning}}</text><button class="people-next" bindtap="continueToProcess" disabled="{{submitting || orderOrbOpen || !selectedEmployeeIds.length || selectionWarning}}">下一步：选工序</button></view>
+  </view>
+
+  <order-orb visible="{{!isFloor3 && stage === 'people' && !orderOrbKeyboardOpen && !historyOpen && !selectedPanelOpen && !reviewOpen && !sheetOpen}}" owner-key="{{orderOrbOwner}}" scope="{{orderOrbScope}}" flow-code="{{flowCode}}" work-order="{{workOrder}}" processes="{{processOverview}}" bind:modalchange="onOrderOrbModal"/>
+
+  <view class="sheet-mask" wx:if="{{selectedPanelOpen && stage === 'people'}}" bindtap="closeSelectedPeople"></view>
+  <view class="assignment-sheet people-selected-sheet" wx:if="{{selectedPanelOpen && stage === 'people'}}"><view class="sheet-heading"><view><text class="sheet-unit-title">已选 {{selectedEmployeeIds.length}} 人</text><text>跨分组保留，点击人员可移除</text></view><button bindtap="closeSelectedPeople">×</button></view><scroll-view scroll-y="true" class="people-selected-list"><view wx:for="{{selectedChips}}" wx:key="blacklakeOperatorId" class="people-selected-list-item" data-operator-id="{{item.blacklakeOperatorId}}" bindtap="chooseEmployee"><text>{{item.name}}</text><icon type="clear" size="18" color="#1686f5"/></view><text wx:if="{{!selectedEmployeeIds.length}}" class="worker-empty">尚未选择人员</text></scroll-view><button class="people-next" bindtap="closeSelectedPeople">返回选人</button></view>
+
+  <view class="process-workspace" wx:if="{{!isFloor3 && stage === 'process'}}">
+    <text class="process-status" wx:if="{{predicting || predictionError}}">{{predicting ? '正在推荐…' : predictionError}}</text>
+    <scroll-view class="process-card-scroll" scroll-y="true" scroll-into-view="{{processScrollTarget}}" scroll-with-animation="{{false}}" wx:if="{{processWheelItems.length}}">
+      <view class="process-card-list"><view wx:for="{{processWheelItems}}" wx:key="taskId" id="process-card-{{item.taskId}}" class="process-card {{item.taskId === selectedProcessId ? 'selected' : ''}} {{item.taskId === prediction.taskId && item.selectable ? 'recommended' : ''}} {{!item.selectable ? 'unavailable' : ''}}" data-task-id="{{item.taskId}}" bindtap="selectPersonProcess" aria-role="radio" aria-disabled="{{!item.selectable}}" aria-checked="{{item.taskId === selectedProcessId}}" aria-label="{{item.orderLabel}} {{item.processName}}，{{item.closed ? '已关闭' : item.percentLabel + '，' + item.statusLabel}}"><text class="process-card-number">{{item.orderLabel}}</text><view class="leader-process-copy"><text class="process-card-name">{{item.processName}}</text><text class="process-recommended" wx:if="{{item.taskId === prediction.taskId && item.selectable}}">推荐</text></view><view class="leader-process-progress {{item.overPlan ? 'over-plan' : ''}}"><view class="leader-progress-ring"><icon wx:if="{{item.closed}}" type="success_no_circle" size="24" color="#10B981"/><text wx:else>{{item.percentLabel}}</text></view><text class="leader-progress-status">{{item.statusLabel}}</text></view></view></view>
+    </scroll-view>
+    <view class="process-empty" wx:else>暂无可选工序</view>
+    <view class="overview-error" wx:if="{{overviewError}}" bindtap="loadOverview">{{overviewError}} · 重试</view>
+    <text class="selection-warning" wx:if="{{selectionWarning}}">{{selectionWarning}}</text>
+      <view class="process-dock"><view class="process-dock-summary"><button bindtap="backToPeople" disabled="{{submitting}}">已选 {{selectedEmployeeIds.length}} 人 · 修改</button><text>{{selectedProcessName}}</text></view><view class="process-actions"><button class="process-next" bindtap="dispatchSelectedPeople" disabled="{{submitting || processWheelMoving || !selectedProcessId || !selectedEmployeeIds.length || selectionWarning}}">{{submitting ? '正在派遣…' : (!processes.length ? '暂无可派工序' : (!selectedProcessId ? '请选择工序' : '派遣 ' + selectedEmployeeIds.length + ' 人'))}}</button></view></view>
+  </view>
+
+  <view class="sheet-mask" wx:if="{{!isFloor3 && reviewOpen}}" bindtap="closeReview"></view>
+  <view class="assignment-sheet onepage-review" wx:if="{{!isFloor3 && reviewOpen}}">
+    <view class="sheet-grabber"></view><view class="sheet-heading"><view><text class="sheet-unit-title">{{placementOnly ? '补充工位' : '确认派工'}}</text><text>{{workOrder.projectCode}} · {{selectedProcessName}}</text></view><button bindtap="closeReview" disabled="{{submitting}}">×</button></view>
+    <scroll-view class="review-list" scroll-y="true"><view class="placement-row" wx:for="{{employeePlacements}}" wx:key="blacklakeOperatorId"><view><text class="placement-name">{{item.name}}</text><text class="placement-unit {{!item.unitId ? 'unresolved' : ''}}">{{item.unitLabel}}</text><text class="placement-source">{{item.unitId ? (item.source === 'binding' ? '绑定工位自动带入' : '本次临时工位') : '请补充工位'}}</text></view><picker range="{{stationOptions}}" range-key="id" value="{{item.unitIndex}}" data-operator-id="{{item.blacklakeOperatorId}}" bindchange="chooseEmployeeUnit" disabled="{{submitting}}"><view class="placement-edit">{{item.unitId ? '调整' : '选择工位'}}</view></picker></view></scroll-view>
+    <text class="review-quantity-rule" wx:if="{{!placementOnly}}">仅登记工时，数量仍待核对</text><text class="selection-warning" wx:if="{{selectionWarning}}">{{selectionWarning}}</text>
+    <view class="sheet-actions"><button bindtap="closeReview" disabled="{{submitting}}">返回修改</button><button class="sheet-primary" bindtap="confirmAssignment" disabled="{{submitting || selectionWarning || !placementsReady}}">{{submitting ? '正在派遣…' : (placementOnly ? '派遣 ' : '确认派工 ') + selectedEmployeeIds.length + ' 人'}}</button></view>
+  </view>
+
+  <view class="station-manager" wx:if="{{!isFloor3 && stage === 'stations'}}">
+    <view class="station-manager-heading"><button bindtap="backFromStation" disabled="{{stationSaving}}">{{stationUnit ? '返回工位' : '返回扫码'}}</button><text>{{stationUnit ? stationUnit.id + ' · 常驻人员' : '人员与工位'}}</text><button bindtap="refreshStationBindings" disabled="{{stationLoading || stationSaving}}">刷新</button></view>
+    <text class="station-manager-note">保存后用于后续派工；当前任务保留原工位。</text><view class="overview-error" wx:if="{{stationError}}">{{stationError}}</view>
+    <view class="worker-search"><icon type="search" size="18" color="#8594ad"/><input wx:if="{{!stationUnit}}" value="{{stationQuery}}" bindinput="onStationQuery" placeholder="搜索工位 / 已绑人员"/><input wx:else value="{{stationPersonQuery}}" bindinput="onStationPersonQuery" placeholder="搜索人员 / 部门"/></view>
+    <scroll-view class="binding-selected" wx:if="{{stationUnit && stationDraftIds.length}}" scroll-x="true"><view class="chip-track"><view class="selected-chip" wx:for="{{stationDraftChips}}" wx:key="blacklakeOperatorId" data-operator-id="{{item.blacklakeOperatorId}}" bindtap="toggleStationEmployee">{{item.name}}<icon type="clear" size="12" color="#7592b8"/></view></view></scroll-view>
+    <scroll-view class="station-manager-list" scroll-y="true" wx:if="{{!stationUnit}}"><view class="station-binding-row" wx:for="{{visibleStationUnits}}" wx:key="id" data-unit-id="{{item.id}}" bindtap="editStation"><text>{{item.id}}</text><view>{{item.names || '未安排人员'}}</view><text class="binding-edit-link">编辑</text></view><text class="worker-empty" wx:if="{{stationLoading}}">读取中…</text></scroll-view>
+    <scroll-view class="station-manager-list" scroll-y="true" wx:else><view class="worker-row {{item.selected ? 'selected' : ''}}" wx:for="{{visibleBindingEmployees}}" wx:key="blacklakeOperatorId" data-operator-id="{{item.blacklakeOperatorId}}" bindtap="toggleStationEmployee"><checkbox class="worker-checkbox" color="#1686f5" checked="{{item.selected}}"/><view class="worker-identity"><text class="worker-name">{{item.name}}</text><text class="worker-department">{{item.description || '生产员工'}}</text></view></view></scroll-view>
+    <view class="station-save-footer" wx:if="{{stationUnit}}"><text>已选 {{stationDraftIds.length}} 人 · 可多选</text><button bindtap="saveStationBinding" disabled="{{stationSaving || stationSaveUncertain || stationLoading}}">{{stationSaving ? '保存中…' : '保存常驻绑定'}}</button></view>
+  </view>
+
+  <view class="sheet-mask" wx:if="{{sheetOpen && isFloor3}}" bindtap="closeSheet"></view>
+  <view class="assignment-sheet" wx:if="{{sheetOpen && isFloor3}}"><view class="sheet-grabber"></view><view class="sheet-heading"><view><text class="sheet-unit-title">{{selectedUnit.id}}</text><text>确认机器与工单</text></view><button bindtap="closeSheet">×</button></view>
+    <view wx:if="{{isFloor3}}" class="machine-confirmation">
+      <view class="confirm-order"><text>当前工单</text><text class="confirm-value">{{workOrder.projectCode}}</text></view>
+      <view class="machine-summary">
+        <view class="machine-summary-row"><text>目标机器</text><text class="confirm-value">{{selectedUnit.id}}</text></view>
+        <view class="machine-summary-row"><text>设备规格</text><text class="confirm-value">12头绣花机</text></view>
+        <view class="machine-summary-row"><text>工序</text><text class="confirm-value">{{recommendedProcess.processName}}</text></view>
+        <view class="machine-summary-row"><text>计划数量</text><text class="confirm-value">{{recommendedProcess.defaultQuantity}} 件</text></view>
+      </view>
+      <view class="dispatch-part-section">
+        <view class="dispatch-part-heading"><text>选择加工部位</text><text class="required-pill">必选</text></view>
+        <view class="dispatch-part-options">
+          <view class="dispatch-part-option {{selectedEmbroideryPart === '前幅' ? 'selected' : ''}}"
+            data-part="前幅" bindtap="chooseDispatchPart" hover-class="part-option-pressed" aria-role="button" aria-label="选择前幅">
+            <view class="part-radio"></view><text>前幅</text>
+          </view>
+          <view class="dispatch-part-option {{selectedEmbroideryPart === '后幅' ? 'selected' : ''}}"
+            data-part="后幅" bindtap="chooseDispatchPart" hover-class="part-option-pressed" aria-role="button" aria-label="选择后幅">
+            <view class="part-radio"></view><text>后幅</text>
+          </view>
+        </view>
+      </view>
+      <button class="sheet-primary machine-confirm-button" disabled="{{submitting || !selectedProcessId || !selectedEmbroideryPart}}" bindtap="confirmAssignment"><text wx:if="{{submitting}}">正在分配…</text><text wx:else>确认分配</text></button>
+    </view>
+  </view>
+
+  <view class="sheet-mask history-mask" wx:if="{{historyOpen && !reportEditor}}" bindtap="closeHistory"></view>
+  <view class="assignment-sheet history-sheet" wx:if="{{historyOpen && !reportEditor}}">
+    <view class="sheet-grabber"></view>
+    <view class="sheet-heading">
+      <view><text class="sheet-unit-title">{{historyTab === 'reports' ? '报工记录' : '我的派工'}} · {{floorName}}</text><text wx:if="{{historyTab !== 'reports'}}">{{historyDate}} · 本人 {{historyTotal}} 条</text></view>
+      <button bindtap="closeHistory" disabled="{{cancelling || reportSaving}}" aria-label="关闭记录">×</button>
+    </view>
+    <view class="history-tabs"><button class="{{historyTab === 'dispatch' ? 'selected' : ''}}" data-tab="dispatch" bindtap="switchHistoryTab" disabled="{{reportSaving || cancelling}}">派工记录</button><button class="{{historyTab === 'reports' ? 'selected' : ''}}" data-tab="reports" bindtap="switchHistoryTab" disabled="{{reportSaving || cancelling}}">报工记录</button></view>
+    <block wx:if="{{historyTab !== 'reports'}}">
+    <view class="history-toolbar"><text>含往日进行中及待核量任务 · 标记本次分配</text><button bindtap="loadHistory" disabled="{{historyLoading}}">{{historyLoading ? '刷新中…' : '刷新状态'}}</button></view>
+    <view class="history-error" wx:if="{{historyError}}">{{historyError}}。已有记录可能未更新，请重试。</view>
+    <view class="history-empty" wx:if="{{historyLoading && !historyAssignments.length}}">正在加载分配记录…</view>
+    <view class="history-empty" wx:if="{{historyLoaded && !historyLoading && !historyError && !historyAssignments.length}}">暂无本人派工记录</view>
+    <scroll-view class="history-list" scroll-y="true">
+      <view class="history-item" wx:for="{{historyAssignments}}" wx:key="id">
+        <view class="history-item-heading"><text>{{item.unitId}} · {{item.operatorName}}</text><text class="history-status">{{item.statusText}}</text></view>
+        <text class="history-task">{{item.projectCode}} · {{item.processName}}</text>
+        <text class="history-quantity">{{item.actualQuantityText}}</text>
+        <text class="history-meta">{{item.publishedAt}} · {{item.publishedBy}}分配 <text wx:if="{{item.isLastDispatch}}"> · 本次分配</text></text>
+        <text class="history-meta" wx:if="{{item.endedAt}}">结束时间 {{item.endedAt}}</text>
+        <text class="history-meta" wx:if="{{item.cancellationReason}}">撤销原因：{{item.cancellationReason}}</text>
+        <text class="history-help" wx:if="{{item.status === 'QUANTITY_PENDING'}}">已登记完工，可继续接单；数量待核对，尚未向黑湖提交产量。</text>
+        <text class="history-help" wx:elif="{{item.status === 'NEEDS_REVIEW'}}">报工结果未知，请到后台核对黑湖记录，勿重复提交。</text>
+        <button class="history-cancel" wx:if="{{item.canCancel}}" data-assignment-id="{{item.id}}" bindtap="beginCancelAssignment" disabled="{{cancelling}}">撤销未开始任务</button>
+        <view class="cancel-form" wx:if="{{cancelAssignmentId === item.id}}">
+          <text>撤销 {{item.operatorName}} 的 {{item.processName}}，操作人和时间会自动留档。</text>
+          <view class="cancel-actions"><button bindtap="dismissCancelAssignment" disabled="{{cancelling}}">保留任务</button><button bindtap="cancelReadyAssignment" disabled="{{cancelling}}">{{cancelling ? '正在撤销…' : '确认撤销'}}</button></view>
+        </view>
+      </view>
+      <view class="history-empty" wx:if="{{historyTruncated}}">仅显示最近 {{historyAssignments.length}} 条，共 {{historyTotal}} 条。</view>
+    </scroll-view>
+    <text class="history-footnote">已开始的任务不能在此撤销；待核量不影响继续接单。</text>
+    </block>
+    <block wx:else>
+      <view class="report-history-filter"><text>仅本人派工相关报工</text><picker mode="date" value="{{reportDate}}" end="{{reportMaxDate}}" bindchange="changeReportDate" disabled="{{reportSaving}}"><view class="report-date-button">{{reportDate || '选择日期'}} ﹀</view></picker></view>
+      <view class="history-error" wx:if="{{reportError || reportActionError}}">{{reportError || reportActionError}}<button bindtap="refreshReports" disabled="{{reportLoading || reportSaving}}">刷新列表</button></view>
+      <scroll-view class="history-list report-history-list" scroll-y="true" scroll-into-view="{{reportScrollTarget}}">
+        <view class="history-empty" wx:if="{{reportLoading && !reportRecords.length}}">正在加载报工记录…</view>
+        <view class="history-empty" wx:elif="{{reportLoaded && !reportError && !reportRecords.length}}">这一天暂无本人派工相关报工</view>
+        <view class="leader-report-record {{item.deleted ? 'report-record-deleted' : ''}}" id="report-row-{{item.id}}" wx:for="{{reportRecords}}" wx:key="id">
+          <view class="leader-report-heading"><text class="leader-report-person">{{item.operatorName}}</text><text class="leader-report-unit">{{item.unitId}}</text><text class="leader-report-process">{{item.processName}}</text><button wx:if="{{item.canEdit || item.canDelete}}" class="leader-report-more" data-id="{{item.id}}" catchtap="toggleReportMenu" disabled="{{reportSaving}}" aria-label="报工操作">⋮</button></view>
+          <text class="leader-report-order">工单：{{item.projectCode}}</text>
+          <view class="leader-report-quantity">数量：<text>{{item.quantity}}件</text><text class="leader-report-defect" wx:if="{{item.defectQuantity}}">不良 {{item.defectQuantity}}件</text></view>
+          <text class="leader-report-time">报工：{{item.timeText}}　有效工时：{{item.durationText}}</text>
+          <text class="leader-report-state" wx:if="{{item.deleted || item.mutationStatus}}">{{item.deleted ? '已删除 · 保留审计' : (item.canReconcile ? '操作结果待核对，核对不会重复提交' : '正在处理上次操作，请稍后刷新')}}</text>
+          <button class="leader-report-reconcile" wx:if="{{item.canReconcile}}" data-id="{{item.id}}" bindtap="reconcileReport" disabled="{{reportSaving}}">{{reportSaving ? '正在核对…' : '核对结果'}}</button>
+          <view class="leader-report-menu" wx:if="{{reportMenuId === item.id}}"><button data-id="{{item.id}}" bindtap="openReportEditor" disabled="{{!item.canEdit || reportSaving}}"><image class="report-action-icon" src="/assets/report-edit.png" mode="aspectFit" aria-hidden="true"/><text>修改报工</text></button><button class="leader-report-delete" data-id="{{item.id}}" bindtap="deleteReport" disabled="{{!item.canDelete || reportSaving}}"><image class="report-action-icon" src="/assets/report-delete.png" mode="aspectFit" aria-hidden="true"/><text>删除报工</text></button></view>
+        </view>
+        <button class="report-load-more" wx:if="{{reportHasMore}}" bindtap="loadMoreReports" disabled="{{reportLoading}}">{{reportLoading ? '正在加载…' : '加载更多'}}</button>
+        <view class="report-menu-space" wx:if="{{reportMenuId}}"></view>
+      </scroll-view>
+      <view class="report-history-footer"><text>{{reportTotal}} 条 · 本系统保存记录</text><button bindtap="refreshReports" disabled="{{reportLoading || reportSaving}}">{{reportLoading ? '刷新中…' : '刷新'}}</button></view>
+    </block>
+  </view>
+  <view class="sheet-mask report-edit-mask" wx:if="{{reportEditor}}" bindtap="closeReportEditor"></view>
+  <view class="assignment-sheet report-edit-sheet report-full-editor" wx:if="{{reportEditor}}" aria-role="dialog" aria-label="{{reportPeopleOpen ? '选择生产人员' : '编辑报工'}}" aria-modal="true">
+    <view class="report-full-heading"><view><text>{{reportPeopleOpen ? '选择人员' : '编辑报工'}}</text><text>{{reportEditor.processName}} · {{reportEditForm.operatorName || reportEditor.operatorName}}</text></view><button bindtap="closeReportEditor" disabled="{{reportSaving}}" aria-label="关闭编辑"><image src="/assets/report-chevron-down.png"/></button></view>
+    <text class="report-editor-loading" wx:if="{{reportEditorLoading}}">正在核对黑湖报工资料…</text>
+    <block wx:elif="{{reportPeopleOpen}}">
+      <view class="report-person-search"><input value="{{reportPeopleQuery}}" bindinput="searchReportPeople" placeholder="搜索当前分类人员" aria-label="搜索生产人员"/></view>
+      <view class="report-person-browser"><scroll-view scroll-y="true" class="report-person-groups"><button wx:for="{{reportPeopleGroups}}" wx:for-item="group" wx:key="id" class="report-person-group {{group.id === reportPeopleGroupId ? 'active' : ''}}" data-id="{{group.id}}" bindtap="chooseReportPeopleGroup" aria-label="{{group.name}}，{{group.count}}人"><text>{{group.name}}</text><text>{{group.count}}</text></button></scroll-view><scroll-view scroll-y="true" class="report-person-list"><button class="report-person-option {{item.operatorId === reportEditForm.operatorId ? 'selected' : ''}}" wx:for="{{reportPeopleResults}}" wx:key="operatorId" data-id="{{item.operatorId}}" bindtap="selectReportPerson"><view><text>{{item.name}}</text><text>{{item.departments}}</text></view><text>{{item.operatorId === reportEditForm.operatorId ? '已选' : ''}}</text></button><text class="report-editor-loading" wx:if="{{!reportPeopleResults.length}}">当前分类没有匹配人员</text></scroll-view></view>
+    </block>
+    <scroll-view wx:else scroll-y="true" class="report-full-body">
+      <view class="report-form-card" wx:if="{{reportEditForm}}">
+        <button class="report-form-row report-person-trigger" bindtap="openReportPeople" disabled="{{reportSaving || reportActionLocked}}"><text>生产人员</text><view><text>{{reportEditForm.operatorName}}</text><image src="/assets/report-chevron-down.png"/></view></button>
+        <view class="report-quantity-grid"><view><text>良品数</text><input class="report-edit-input" type="number" value="{{reportGoodInput}}" bindinput="onReportGoodInput" maxlength="9" disabled="{{reportSaving || reportActionLocked}}" aria-label="修改合格数"/></view><view><text>不良数</text><input class="report-edit-input" type="number" value="{{reportDefectInput}}" bindinput="onReportDefectInput" maxlength="9" disabled="{{!reportEditor.canEditDefects || reportSaving || reportActionLocked}}" aria-label="修改不良数"/></view></view>
+        <button class="report-form-row report-defect-trigger" bindtap="toggleReportDefects" disabled="{{!reportEditor.canEditDefects || reportSaving || reportActionLocked}}"><text>不良品项</text><view><text>{{reportDefectInput === '0' ? '无不良' : reportDefectText}}</text><image src="/assets/report-chevron-down.png"/></view></button>
+        <view class="report-defect-allocation" wx:if="{{reportDefectsOpen}}"><view wx:for="{{reportReasonOptions}}" wx:for-item="reason" wx:key="code"><button class="{{reason.selected ? 'selected' : ''}}" data-code="{{reason.code}}" bindtap="toggleReportDefect" disabled="{{reportSaving || reportActionLocked}}">{{reason.name}}</button><input wx:if="{{reason.selected}}" type="number" value="{{reason.quantity}}" data-code="{{reason.code}}" bindinput="onReportDefectAmount" aria-label="{{reason.name}}数量" disabled="{{reportSaving || reportActionLocked}}"/></view><text>各项数量合计须等于不良数</text></view>
+      </view>
+      <view class="report-form-card" wx:if="{{reportEditForm}}">
+        <view class="report-time-grid"><view class="report-time-column"><text>开始时间</text><picker mode="date" value="{{reportEditForm.startDate}}" data-part="start" data-field="date" bindchange="changeReportDateTime" disabled="{{reportSaving || reportActionLocked}}" aria-label="选择开始时间日期"><view class="report-edit-date"><text>{{reportEditForm.startDate}}</text><image src="/assets/report-chevron-down.png"/></view></picker><picker mode="time" value="{{reportEditForm.startTime}}" data-part="start" data-field="time" bindchange="changeReportDateTime" disabled="{{reportSaving || reportActionLocked}}" aria-label="选择开始时间时分"><view class="report-edit-clock"><text>{{reportEditForm.startTime}}</text><image src="/assets/report-chevron-down.png"/></view></picker></view><view class="report-time-column"><text>结束时间</text><picker mode="date" value="{{reportEditForm.endDate}}" data-part="end" data-field="date" bindchange="changeReportDateTime" disabled="{{reportSaving || reportActionLocked}}" aria-label="选择结束时间日期"><view class="report-edit-date"><text>{{reportEditForm.endDate}}</text><image src="/assets/report-chevron-down.png"/></view></picker><picker mode="time" value="{{reportEditForm.endTime}}" data-part="end" data-field="time" bindchange="changeReportDateTime" disabled="{{reportSaving || reportActionLocked}}" aria-label="选择结束时间时分"><view class="report-edit-clock"><text>{{reportEditForm.endTime}}</text><image src="/assets/report-chevron-down.png"/></view></picker></view></view>
+        <view class="report-worktime"><view class="report-hours-heading"><text>有效工时</text><text>{{reportEditor.fullSyncReady ? '黑湖同步' : '待接通'}}</text></view><view class="report-hours-fields"><view><input type="number" value="{{reportEditForm.hours}}" data-field="hours" bindinput="onReportEditField" aria-label="工时小时" disabled="{{reportSaving || reportActionLocked}}"/><text>小时</text></view><view><input type="number" value="{{reportEditForm.minutes}}" data-field="minutes" bindinput="onReportEditField" aria-label="工时分钟" disabled="{{reportSaving || reportActionLocked}}"/><text>分钟</text></view><button bindtap="recalculateReportHours" disabled="{{reportSaving || reportActionLocked}}">重算</button></view><text class="report-worktime-note">自动扣除午休与暂停时间</text></view>
+      </view>
+      <button class="report-more-info" bindtap="toggleReportExtra" wx:if="{{reportEditForm}}"><text>更多信息</text><text>{{reportExtraOpen ? '收起' : '用料工序、打卡时长'}}</text><image src="/assets/report-chevron-down.png"/></button>
+      <view class="report-form-card report-extra-card" wx:if="{{reportExtraOpen && reportEditForm}}"><view class="report-form-row"><text>用料工序</text><input value="{{reportEditForm.materialProcess}}" data-field="materialProcess" bindinput="onReportEditField" maxlength="100" placeholder="选填" aria-label="用料工序" disabled="{{reportSaving || reportActionLocked}}"/></view><view class="report-form-row"><text>打卡时长 / 分</text><view><text>{{reportEditForm.punchMinutes}}</text><text>公式</text></view></view><text class="report-editor-note">打卡时长按起止时间计算，包含午休与暂停；有效工时另扣除。修改时间后为公式预估，保存须与黑湖结果核对。原派工：{{reportEditor.originalOperatorName}}。</text></view>
+    </scroll-view>
+    <view class="report-full-footer" wx:if="{{!reportPeopleOpen}}"><text class="report-editor-error" wx:if="{{reportActionError || reportEditor.fullSyncReady !== true}}">{{reportActionError || '黑湖有效工时写入尚未验证，暂不能保存完整编辑。'}}</text><button class="report-save-button" bindtap="saveReportEdit" disabled="{{reportSaving || reportActionLocked || reportEditorLoading || !reportEditForm || reportTimeInvalid || reportEditor.fullSyncReady !== true}}">{{reportSaving ? '正在同步黑湖…' : (reportActionLocked ? '请关闭并刷新核对' : '保存修改')}}</button></view>
+  </view>
+
+</view>
+<view class="app-bottom-nav dispatch-scan-nav" wx:if="{{ready && stage === 'scan' && !historyOpen}}"><button class="active" disabled="{{submitting}}"><image src="/assets/scan-nav-active.png"/>派工</button><button bindtap="openHistory" disabled="{{submitting}}"><image src="/assets/scan-nav-history.png"/>记录</button><button wx:if="{{!isFloor3}}" bindtap="openStationManager" disabled="{{submitting}}"><image src="/assets/scan-nav-users.png"/>工位管理</button><button wx:if="{{!isFloor3}}" bindtap="openSiteMap" disabled="{{submitting}}"><image src="/assets/scan-nav-map.png"/>现场地图</button></view>

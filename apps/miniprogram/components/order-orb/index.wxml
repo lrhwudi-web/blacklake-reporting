@@ -1,0 +1,35 @@
+<wxs module="drag" src="./drag.wxs"/>
+<view wx:if="{{visible && layoutReady}}" class="order-orb-root {{reduceMotion ? 'reduced-motion' : ''}}">
+  <view class="order-orb-mask {{expanded ? 'is-open' : ''}} {{modalActive ? 'is-active' : ''}}" catchtap="close" catchtouchmove="absorb"></view>
+  <view class="order-orb-shell {{expanded ? 'is-open' : ''}}" style="width:{{panelWidth}}px;height:{{panelHeight}}px;transform:{{expanded ? openTransform : closedTransform}};" bindtransitionend="onShellEnd"></view>
+  <view class="order-orb-content {{expanded ? 'is-open' : ''}}" style="left:{{panelX}}px;top:{{panelY}}px;width:{{panelWidth}}px;height:{{panelHeight}}px;" aria-role="dialog" aria-label="工单详情" aria-hidden="{{!expanded}}" catchtap="absorb">
+    <view class="orb-heading"><text>工单详情</text><button class="orb-close" bindtap="close" aria-label="收起工单详情"><icon type="clear" size="20" color="#64748B"/></button></view>
+    <scroll-view class="orb-detail-scroll" scroll-y="true" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="orb-product">
+        <view class="orb-product-picture" bindtap="previewImage" aria-role="button" aria-label="放大产品图片">
+          <image wx:if="{{detail.imageUrl && !imageFailed}}" src="{{detail.imageUrl}}" mode="aspectFit" data-image-url="{{detail.imageUrl}}" binderror="imageError"/>
+          <text wx:else>暂无图片</text>
+        </view>
+        <view class="orb-product-copy"><view class="orb-badges"><text>{{detail.statusLabel}}</text><text wx:if="{{detail.dueLabel}}">{{detail.dueLabel}}</text></view><text class="orb-order-title">{{detail.projectCode}}</text></view>
+        <view class="orb-plan"><text>{{detail.planLabel}}</text><text>计划数{{detail.unit ? ' · ' + detail.unit : ''}}</text></view>
+      </view>
+      <view class="orb-info"><text class="orb-label">工单编号</text><text>{{detail.projectCode || '未确认'}}</text></view>
+      <view class="orb-info"><text class="orb-label">计划时间</text><view><text>{{detail.startLabel}}</text><text>{{detail.endLabel === '未确认' ? '至 未确认' : '至 ' + detail.endLabel}}</text></view></view>
+      <view class="orb-info"><text class="orb-label">SKU</text><text>{{detail.productCode || '未确认'}}</text></view>
+      <view class="orb-info"><text class="orb-label">产品名称</text><text>{{detail.productName || '未确认'}}</text></view>
+      <view class="orb-info"><text class="orb-label">工单进度</text><text>{{detail.progressLabel}}</text></view>
+      <text class="orb-process-title">各工序进度</text>
+      <scroll-view class="orb-route" scroll-x="true" enhanced="{{true}}" show-scrollbar="{{false}}" wx:if="{{detail.processes.length}}">
+        <view class="orb-route-inner"><view class="orb-route-node {{item.closed ? 'is-closed' : ''}} {{item.overPlan ? 'over-plan' : ''}}" wx:for="{{detail.processes}}" wx:key="taskId" aria-label="{{item.processName}}，{{item.percentLabel}}，{{item.statusLabel}}"><view class="orb-progress-ring"><icon wx:if="{{item.closed}}" type="success_no_circle" size="22" color="#10B981"/><text wx:else>{{item.percentLabel}}</text></view><text class="orb-process-name">{{item.processName}}</text><text class="orb-process-state">{{item.statusLabel}}</text></view></view>
+      </scroll-view>
+      <text class="orb-empty" wx:else>工序进度未确认</text>
+      <view class="orb-loading" wx:if="{{loading}}">正在读取工单资料…</view>
+      <view class="orb-error" wx:if="{{error}}"><text>{{error}}</text><button bindtap="loadDetails" disabled="{{loading}}">重试</button></view>
+      <view class="orb-source"><text>{{detail.updatedLabel === '未确认' ? '更新时间未确认' : '查询于 ' + detail.updatedLabel}}</text><text>达到计划量不等于工序关闭</text></view>
+    </scroll-view>
+  </view>
+  <view class="order-orb-button {{pressed ? 'is-pressed' : ''}} {{dragging ? 'is-dragging' : ''}}" style="transform:translate3d({{position.x}}px,{{position.y}}px,0);" data-x="{{position.x}}" data-y="{{position.y}}" data-min-x="{{box.minX}}" data-max-x="{{box.maxX}}" data-min-y="{{box.minY}}" data-max-y="{{box.maxY}}" data-locked="{{modalActive}}" position="{{position.x + ',' + position.y}}" change:position="{{drag.sync}}" bindtouchstart="{{drag.start}}" bindlongpress="{{drag.hold}}" catchtouchmove="{{drag.move}}" bindtouchend="{{drag.end}}" bindtouchcancel="{{drag.cancel}}" bindtap="{{drag.tap}}" aria-role="button" aria-label="{{expanded ? '收起工单详情' : '查看工单详情，长按可拖动'}}" aria-expanded="{{expanded}}">
+    <view class="orb-lens"><image wx:if="{{detail.imageUrl && !imageFailed}}" class="orb-thumbnail" src="{{detail.imageUrl}}" mode="aspectFill" data-image-url="{{detail.imageUrl}}" binderror="imageError"/><text wx:else class="orb-fallback">工单</text><image class="orb-glass-rim" src="/assets/order-orb-glass.webp" mode="aspectFit" aria-hidden="true"/></view>
+    <text class="orb-saved-notice {{position.x > box.width / 2 ? 'notice-right' : ''}}" wx:if="{{savedNotice}}">{{savedNotice}}</text>
+  </view>
+</view>

@@ -1,0 +1,1 @@
+{"navigationBarTitleText": "工单", "disableScroll": true, "usingComponents": {"liquid-detail": "/workspace/components/liquid-detail/index", "leader-tasks": "/workspace/components/leader-tasks/index", "reports-dashboard": "/workspace/components/reports-dashboard/index"}}

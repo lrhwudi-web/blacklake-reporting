@@ -1,0 +1,317 @@
+<template name="employeeTodaySummary">
+  <view class="employee-summary-card" aria-label="本人今日已完成{{summaryCountText}}单，累计工时{{summaryHoursText}}小时">
+    <view class="today-summary-grid">
+      <view><text class="today-summary-label">今日已完成</text><view class="today-summary-value"><text>{{summaryCountText}}</text><text class="today-summary-unit" wx:if="{{summaryCountKnown}}">单</text></view></view>
+      <view class="today-summary-hours"><text class="today-summary-label">累计工时</text><view class="today-summary-value"><text>{{summaryHoursText}}</text><text class="today-summary-unit" wx:if="{{summaryHoursKnown}}">h</text></view></view>
+    </view>
+    <text class="today-summary-note" wx:if="{{summaryLoading}}">正在读取今日统计…</text>
+    <view class="today-summary-alert" wx:elif="{{summaryError}}"><text>{{summaryError}}</text><button class="link-button" bindtap="loadAssignment">重试</button></view>
+    <text class="today-summary-note" wx:elif="{{summaryNote}}">{{summaryNote}}</text>
+  </view>
+</template>
+<view class="page report-page report-stage-{{stage}} {{cuttingSelfService && (stage === 'waiting' || (stage === 'scan' && selfServiceMode)) ? 'report-self-entry' : ''}} {{selfServiceMode && stage === 'select' ? 'report-self-select' : ''}} {{stage === 'working' || stage === 'finish' || stage === 'confirm-start' ? 'report-action-page' : ''}}" wx:if="{{ready}}">
+  <view class="report-header" wx:if="{{stage !== 'success'}}">
+    <view class="report-header-copy"><text class="report-eyebrow">安心报工 · {{operator.name}}</text><text class="report-heading">{{stage === 'waiting' && !cuttingSelfService ? operator.name + '，你好' : headline}}</text></view>
+    <view class="report-avatar-button" bindtap="openMyMenu" aria-role="button" aria-label="我的"><view class="avatar">{{operatorInitial}}</view></view>
+  </view>
+  <view class="report-content">
+  <view class="review-mode-banner" wx:if="{{reviewMode}}">审核体验 · 仅限指定测试工单</view>
+  <view class="review-warning" wx:if="{{selfServicePermissionError}}"><text>{{selfServicePermissionError}}</text><button class="link-button" bindtap="refreshSelfServicePermission" disabled="{{selfServiceChecking}}">重新读取开工权限</button></view>
+
+
+  <view class="hero" wx:if="{{subheadline}}"><text class="hero-copy">{{subheadline}}</text></view>
+  <view class="review-warning" wx:if="{{previousQuantityNotice && stage !== 'success'}}">
+    <text>{{previousQuantityNotice}}</text>
+    <button class="link-button" bindtap="openRecent">查看最近记录</button>
+    <button class="link-button" bindtap="loadAssignment" disabled="{{submitting}}">刷新任务状态</button>
+  </view>
+
+  <view class="card waiting-assignment-card" wx:if="{{stage === 'waiting' && !cuttingSelfService}}">
+    <view class="waiting-pulse"><view class="waiting-core"><image src="/assets/status-hourglass.png" aria-hidden="true"/></view></view>
+    <text class="waiting-title">等待组长派单</text>
+    <text class="waiting-copy">新任务会自动出现在这里
+无需刷新或扫码</text>
+    <view class="waiting-online" wx:if="{{!assignmentError}}"><view class="online-dot"></view>自动接收任务中</view>
+    <text class="waiting-copy" wx:else>{{assignmentError}}</text>
+    <button class="link-button waiting-retry" wx:if="{{assignmentError}}" bindtap="loadAssignment">立即重试</button>
+  </view>
+
+  <view wx:if="{{stage === 'waiting' && !cuttingSelfService}}"><template is="employeeTodaySummary" data="{{summaryLoading, summaryCountText, summaryCountKnown, summaryHoursText, summaryHoursKnown, summaryError, summaryNote}}"/></view>
+
+  <scroll-view class="worker-self-home" scroll-y="true" scroll-into-view="{{skuResults.length || skuSearchError ? 'worker-sku-section' : ''}}" wx:if="{{cuttingSelfService && (stage === 'waiting' || (stage === 'scan' && selfServiceMode))}}">
+    <view class="worker-home-content">
+    <view class="worker-scan-intro"><view class="worker-scan-ring"><button class="worker-scan-hero" bindtap="scanSelfWork" disabled="{{submitting || scanning || skuSearching}}" aria-label="扫描工单自主开工"><image src="/assets/scan-camera-white.png" mode="aspectFit" aria-hidden="true"/><text>{{scanning ? '正在扫码…' : (submitting ? '正在读取…' : '扫码开工')}}</text></button></view><text class="worker-scan-hint">扫描工单二维码
+选择工序后开工</text></view>
+    <text class="worker-self-error" wx:if="{{scanError}}">{{scanError}}</text>
+    <view id="worker-sku-section"><view class="worker-sku-divider"><view></view><text>或输入 SKU</text><view></view></view>
+    <view class="worker-sku-row"><input value="{{skuQuery}}" bindinput="onSkuInput" bindconfirm="searchSkuWorkOrders" placeholder="输入 SKU" confirm-type="search" maxlength="80"/><button bindtap="searchSkuWorkOrders" disabled="{{submitting || skuSearching}}">{{skuSearching ? '查询中' : '查询'}}</button></view></view>
+    <text class="worker-self-error" wx:if="{{skuSearchError}}">{{skuSearchError}}</text>
+    <view class="worker-sku-results">
+      <view class="worker-sku-result" wx:for="{{skuResults}}" wx:key="projectId" data-project-id="{{item.projectId}}" bindtap="selectSkuWorkOrder" aria-role="button" aria-label="选择工单 {{item.projectCode}}">
+        <view class="worker-sku-picture" wx:if="{{item.productImageUrls.length && !item.imageFailed}}" data-project-id="{{item.projectId}}" data-image-url="{{item.productImageUrls[0]}}" catchtap="previewSkuImage" aria-role="button" aria-label="放大产品图片">
+          <image src="{{item.productImageUrls[0]}}" mode="aspectFit" lazy-load="true" data-project-id="{{item.projectId}}" data-image-url="{{item.productImageUrls[0]}}" binderror="onSkuImageError"/><text class="worker-sku-zoom">点图放大</text>
+        </view>
+        <view class="worker-sku-picture worker-sku-no-image" wx:else><text>{{item.imageFailed ? '图片加载失败' : '暂无图片'}}</text></view>
+        <view class="worker-sku-info"><text class="worker-sku-code">{{item.projectCode}}</text><text class="worker-sku-name">{{item.productName}}</text><text class="worker-sku-number">SKU {{item.productCode}}</text></view>
+        <image class="worker-sku-arrow" src="/assets/people-chevron.png" aria-hidden="true"/>
+      </view>
+    </view>
+    <template is="employeeTodaySummary" data="{{summaryLoading, summaryCountText, summaryCountKnown, summaryHoursText, summaryHoursKnown, summaryError, summaryNote}}"/>
+    </view>
+  </scroll-view>
+
+  <view class="card scan-card" wx:if="{{stage === 'scan' && !selfServiceMode}}">
+    <view class="status-empty">{{reportingMode === 'embroidery' ? '先扫工单，再扫机器码' : '扫描黑湖工单二维码'}}</view>
+    <button class="primary-button start-button" disabled="{{submitting}}" bindtap="scanFlowCode">
+      {{submitting ? '正在读取…' : '扫描工单'}}
+    </button>
+    <button class="link-button full-link" wx:if="{{addingParallel && activeAssignments.length}}" bindtap="cancelParallelSetup">返回正在生产的机台</button>
+  </view>
+
+  <view class="card machine-scan-card" wx:if="{{stage === 'scan-machine'}}">
+    <view class="key-row key-row-order">
+      <text class="key-label">工单</text>
+      <text class="key-value">{{workOrder.projectCode}}</text>
+    </view>
+    <view class="station-scan-action" bindtap="scanEmbroideryMachineCode" hover-class="station-scan-pressed"
+      aria-role="button" aria-label="扫描绣花机机器码">
+      <text class="station-scan-title">{{submitting ? '正在识别…' : '扫描机器码'}}</text>
+    </view>
+    <button class="link-button full-link" bindtap="restartScan">重新扫描工单</button>
+  </view>
+
+  <view class="card embroidery-part-card" wx:if="{{stage === 'select-embroidery-part'}}">
+    <view class="key-summary">
+      <view class="key-row">
+        <text class="key-label">工单</text>
+        <text class="key-value">{{workOrder.projectCode}}</text>
+      </view>
+      <view class="key-row">
+        <text class="key-label">机器</text>
+        <text class="key-value">{{machineName}}</text>
+      </view>
+    </view>
+    <view class="embroidery-part-grid">
+      <view class="embroidery-part-button" data-part="前幅" bindtap="chooseEmbroideryPart" hover-class="process-pressed"
+        aria-role="button" aria-label="选择前幅">前幅</view>
+      <view class="embroidery-part-button" data-part="后幅" bindtap="chooseEmbroideryPart" hover-class="process-pressed"
+        aria-role="button" aria-label="选择后幅">后幅</view>
+    </view>
+    <button class="link-button full-link" bindtap="scanEmbroideryMachineCode">机器扫错了，重新扫描</button>
+  </view>
+
+  <view class="self-process-selector" wx:if="{{stage === 'select' && selfServiceMode}}">
+    <view class="self-process-order"><text>{{workOrder.projectCode}}</text><button class="link-button" bindtap="restartScan" disabled="{{submitting}}">换工单</button></view>
+    <scroll-view class="self-process-scroll" scroll-y="true" scroll-into-view="{{selfProcessScrollTarget}}" scroll-with-animation="{{false}}">
+      <view class="self-process-list">
+        <view wx:for="{{selfProcessOverview}}" wx:key="taskId" id="self-process-{{item.taskId}}" class="self-process-card {{item.taskId === selectedProcess.taskId ? 'selected' : ''}} {{item.taskId === selfRecommendedTaskId ? 'recommended' : ''}} {{!item.selectable ? 'unavailable' : ''}}" data-task-id="{{item.taskId}}" bindtap="chooseProcess" hover-class="{{item.selectable ? 'process-pressed' : ''}}" aria-role="radio" aria-disabled="{{!item.selectable}}" aria-checked="{{item.taskId === selectedProcess.taskId}}" aria-label="第{{item.sequenceText}}道，{{item.processName}}，{{item.closed ? '已关闭' : item.percentLabel + '，' + item.statusLabel}}{{item.taskId === selfRecommendedTaskId ? '，本人历史推荐' : ''}}">
+          <text class="self-process-number">{{item.sequenceText}}</text>
+          <view class="self-process-copy"><text class="self-process-name">{{item.processName}}</text><text class="self-process-recommendation" wx:if="{{item.taskId === selfRecommendedTaskId}}">推荐</text><text class="self-process-note" wx:elif="{{item.selectable && item.defaultQuantity !== null && item.defaultQuantity !== undefined}}">默认 {{item.defaultQuantity}} 件</text></view>
+          <view class="self-process-progress {{item.overPlan ? 'over-plan' : ''}}"><view class="self-progress-ring"><icon wx:if="{{item.closed}}" type="success_no_circle" size="24" color="#10B981"/><text wx:else>{{item.percentLabel}}</text></view><text class="self-progress-status">{{item.statusLabel}}</text></view>
+        </view>
+        <text class="self-process-empty" wx:if="{{!selfProcessOverview.length}}">暂无工序</text>
+      </view>
+    </scroll-view>
+    <view class="self-process-dock">
+      <picker wx:if="{{selfWorkUnits.length > 1}}" range="{{selfWorkUnitOptions}}" value="{{selfWorkUnitIndex}}" bindchange="chooseSelfWorkUnit" disabled="{{submitting}}"><view class="self-unit-picker">{{selfWorkUnitId || '请选择工位'}}</view></picker>
+      <button class="primary-button" disabled="{{submitting || !selectedProcess || (selfWorkUnits.length > 1 && !selfWorkUnitId)}}" bindtap="startSelectedProcess">{{submitting ? '正在开工…' : (!processes.length ? '暂无可开工工序' : (selectedProcess ? '开始生产' : '请选择工序'))}}</button>
+    </view>
+  </view>
+
+  <view wx:if="{{stage === 'select' && !selfServiceMode}}">
+    <view class="compact-mode-switch">
+      <view class="compact-mode-button" wx:if="{{selectionMode === 'station'}}"
+        data-mode="manual" bindtap="setSelectionMode" aria-role="button" aria-label="切换为选择工序">
+        没有工序码？选择工序
+      </view>
+      <view class="compact-mode-button" wx:else
+        data-mode="station" bindtap="setSelectionMode" aria-role="button" aria-label="切换为扫描工序码">
+        改为扫描工序码
+      </view>
+    </view>
+    <view class="selection-panel" wx:if="{{selectionMode === 'manual' && featuredProcesses.length && !showAllProcesses}}">
+      <text class="section-title">{{featuredTitle}}</text>
+      <view class="favorite-process" wx:for="{{featuredProcesses}}" wx:key="taskId"
+        data-task-id="{{item.taskId}}" bindtap="chooseProcess" hover-class="process-pressed"
+        aria-role="button" aria-label="第 {{item.sequenceText}} 道，{{item.processName}}">
+        <text class="process-sequence">{{item.sequenceText}}</text>
+        <text class="process-name">{{item.processName}}</text>
+      </view>
+      <view class="all-processes-button" bindtap="showAllProcesses" hover-class="process-pressed"
+        aria-role="button" aria-label="查看全部 {{processes.length}} 道未完成工序">
+        查看全部 {{processes.length}} 道未完成工序
+      </view>
+    </view>
+
+    <view class="selection-panel" wx:if="{{selectionMode === 'manual' && showAllProcesses}}">
+      <text class="section-title">全部未完成工序</text>
+      <view class="process-list">
+        <view class="process-row" wx:for="{{processes}}" wx:key="taskId"
+          data-task-id="{{item.taskId}}" bindtap="chooseProcess" hover-class="process-pressed"
+          aria-role="button" aria-label="第 {{item.sequenceText}} 道，{{item.processName}}">
+          <text class="process-sequence">{{item.sequenceText}}</text>
+          <text class="process-name">{{item.processName}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="station-scan-panel" wx:if="{{selectionMode === 'station'}}">
+      <view class="key-row key-row-order">
+        <text class="key-label">工单</text>
+        <text class="key-value">{{workOrder.projectCode}}</text>
+      </view>
+
+      <view class="station-scan-action" bindtap="scanStationProcessCode" hover-class="station-scan-pressed"
+        aria-role="button" aria-label="扫描工序码">
+        <text class="station-scan-title">{{submitting ? '正在识别…' : '扫描工序码'}}</text>
+      </view>
+    </view>
+
+    <button class="link-button full-link" bindtap="restartScan">重新扫描工单</button>
+  </view>
+
+  <view class="card confirm-process-card" wx:if="{{stage === 'confirm-start'}}">
+    <view class="key-summary">
+      <view class="key-row">
+        <text class="key-label">工单</text>
+        <text class="key-value">{{workOrder.projectCode}}</text>
+      </view>
+      <view class="key-row key-row-process">
+        <text class="key-label">工序</text>
+        <text class="key-value key-process">{{selectedProcess.processName}}</text>
+      </view>
+      <view class="key-row" wx:if="{{machineId}}">
+        <text class="key-label">机器</text>
+        <text class="key-value">{{machineName}}</text>
+      </view>
+      <view class="key-row" wx:if="{{embroideryPart}}">
+        <text class="key-label">部位</text>
+        <text class="key-value key-process">{{embroideryPart}}</text>
+      </view>
+      <view class="key-row">
+        <text class="key-label">数量</text>
+        <text class="key-value">{{selectedProcess.defaultQuantity}} 件</text>
+      </view>
+    </view>
+    <picker wx:if="{{selfServiceMode && selfWorkUnits.length > 1}}" range="{{selfWorkUnitOptions}}" value="{{selfWorkUnitIndex}}" bindchange="chooseSelfWorkUnit"><view class="self-unit-picker">{{selfWorkUnitId || '请选择工位'}}</view></picker>
+  </view>
+
+  <view class="working-panel" wx:if="{{assignment && stage === 'working'}}">
+    <scroll-view class="active-task-switch" scroll-x="true" wx:if="{{assignment.machineId && activeAssignments.length > 1}}">
+      <view class="active-task-switch-row">
+        <view wx:for="{{activeAssignments}}" wx:key="id" class="active-task-chip {{item.id === assignment.id ? 'active-task-chip-current' : ''}}"
+          data-assignment-id="{{item.id}}" bindtap="selectActiveAssignment">
+          <text>{{item.machineText}}</text><text>{{item.projectCode}}</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view class="work-summary">
+      <view class="work-summary-copy">
+      <text class="machine-label" wx:if="{{assignment.isEmbroidery}}">{{assignment.machineText}}</text>
+      <text class="machine-label" wx:elif="{{assignment.stationName}}">{{assignment.stationName}}</text>
+      <text class="task-process">{{assignment.processName}}</text>
+      <text class="work-order">工单 {{assignment.projectCode}}</text>
+      <view class="work-quantity" wx:if="{{assignment.quantityPolicy !== 'PENDING_REVIEW'}}"><text>{{assignment.quantity}}</text><text class="work-quantity-unit">件</text></view>
+      <text class="work-quantity work-quantity-pending" wx:else>数量待核对</text>
+      </view>
+      <view class="work-product-picture" wx:if="{{assignmentImageStatus === 'ready' && assignmentImageOwnerId === assignment.id && assignmentImageProjectId === assignment.projectId && assignmentImageProjectCode === assignment.projectCode}}" catchtap="previewAssignmentImage" aria-role="button" aria-label="放大本工单产品图片">
+        <image class="work-product-image" src="{{assignmentImageUrls[0]}}" mode="aspectFit" data-assignment-id="{{assignment.id}}" data-image-url="{{assignmentImageUrls[0]}}" binderror="onAssignmentImageError"/>
+      </view>
+      <view class="work-product-picture work-product-placeholder" wx:else catchtap="retryAssignmentImage" aria-role="{{assignmentImageStatus === 'error' ? 'button' : ''}}" aria-label="{{assignmentImageStatus === 'error' ? '重新加载本工单产品图片' : '本工单产品图片'}}">
+        <text>{{assignmentImageStatus === 'loading' ? '图片加载中' : (assignmentImageStatus === 'error' ? '图片加载失败' : '暂无图片')}}</text><text class="work-product-retry" wx:if="{{assignmentImageStatus === 'error'}}">点击重试</text>
+      </view>
+    </view>
+
+    <view class="ready-instruction" wx:if="{{assignment.status === 'READY'}}">到达工位后点击开始</view>
+    <view class="timer-block {{timerResting ? 'timer-resting' : ''}}" wx:if="{{assignment.status === 'IN_PROGRESS' && !submissionUncertain}}">
+      <view class="timer-heading"><text class="timer-label">有效工时</text><view class="timer-status"><view class="online-dot"></view>{{timerStatus}}</view></view>
+      <text class="timer">{{elapsedText}}</text>
+      <text class="timer-note">午休 12:00–13:30 自动扣除</text>
+    </view>
+    <view class="review-warning" wx:if="{{timerError}}">{{timerError}}</view>
+
+    <button class="parallel-button" wx:if="{{cuttingSelfService && assignment.isEmbroidery && !assignment.isDispatched && assignment.status === 'IN_PROGRESS' && !submissionUncertain}}" disabled="{{submitting}}" bindtap="startAnotherEmbroidery">再开一台</button>
+    <view class="review-warning" wx:if="{{assignment.status === 'NEEDS_REVIEW'}}">这笔报工正在核对，请联系班组长，不要重复操作。</view>
+    <view class="review-warning" wx:if="{{assignment.status === 'REPORTING'}}">正在提交，请稍后查看。</view>
+    <view class="review-warning" wx:if="{{assignment.quantityPolicy === 'PENDING_REVIEW' && assignment.status !== 'QUANTITY_PENDING'}}">数量待核对，结束只记工时，暂不计产量。</view>
+    <view class="review-warning" wx:if="{{assignment.status === 'QUANTITY_PENDING'}}">已登记完工，数量待核对，可继续接单。</view>
+    <view class="review-warning" wx:if="{{submissionUncertain}}">{{assignment.quantityPolicy === 'PENDING_REVIEW' ? '完工登记结果待确认，请恢复网络后刷新任务状态。本次只记参与时间，未提交产量。' : '尚未确认报工结果，请恢复网络后刷新任务状态，不要重复报工。'}}</view>
+    <view class="review-warning" wx:elif="{{assignmentError}}">{{assignmentError}}</view>
+    <button class="link-button" wx:if="{{submissionUncertain || assignmentError || assignment.status === 'REPORTING' || assignment.status === 'NEEDS_REVIEW' || assignment.status === 'QUANTITY_PENDING'}}" disabled="{{submitting}}" bindtap="loadAssignment">刷新任务状态</button>
+  </view>
+
+  <view class="work-queue" wx:if="{{queueAssignments.length && stage === 'working'}}">
+    <view class="work-queue-heading"><text>待做队列</text><text>{{queueAssignments.length}} 单</text></view>
+    <view class="work-queue-row" wx:for="{{queueAssignments}}" wx:key="id"><text class="work-queue-index">{{index + 1}}</text><view><text class="work-queue-process">{{item.processName}}</text><text class="work-queue-order">{{item.projectCode}}</text></view><text class="work-queue-status">待开始</text></view>
+    <text class="work-queue-note">完成当前任务后，按顺序接下一单</text>
+  </view>
+
+  <view class="card finish-card" wx:if="{{assignment && stage === 'finish'}}">
+    <text class="finish-process">{{assignment.processName}}</text>
+    <text class="draft-notice" wx:if="{{draftNotice}}">{{draftNotice}}</text>
+    <text class="amount-title">{{assignment.isQualityInspection ? '本次合格数' : '我做了多少件'}}</text>
+    <view class="amount-hint"><text>工序计划 {{assignment.targetQuantity === null || assignment.targetQuantity === undefined ? '—' : assignment.targetQuantity}} · </text><text wx:if="{{finishRemainingQuantity !== null && finishRemainingQuantity !== undefined}}">剩余 {{finishRemainingQuantity}} 件</text><text wx:else>剩余 —</text></view>
+    <input class="amount-input finish-amount-input" type="number" value="{{reportQuantity}}"
+      bindinput="onQuantityInput" bindfocus="onReportInputFocus" bindblur="onReportInputBlur" bindkeyboardheightchange="onReportKeyboardHeightChange" disabled="{{submitting}}" maxlength="9" />
+    <view wx:if="{{assignment.isQualityInspection}}">
+      <text class="amount-title">本次不良数</text>
+      <input class="amount-input finish-amount-input" type="number" value="{{reportDefectQuantity}}"
+        bindinput="onDefectInput" bindfocus="onReportInputFocus" bindblur="onReportInputBlur" bindkeyboardheightchange="onReportKeyboardHeightChange" disabled="{{submitting}}" maxlength="9" />
+      <view class="defect-reason-field" wx:if="{{hasDefects}}">
+        <text class="amount-title">不良原因（可多选）</text>
+        <view class="defect-reason-grid">
+          <view wx:for="{{defectReasons}}" wx:key="code"
+            class="defect-reason-button {{item.selected ? 'defect-reason-active' : ''}}"
+            data-code="{{item.code}}" bindtap="chooseDefectReason" hover-class="defect-reason-pressed"
+            aria-role="checkbox" aria-checked="{{item.selected}}" aria-label="{{item.name}}">
+            <text class="defect-reason-check">{{item.selected ? '✓' : ''}}</text>
+            <text>{{item.name}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  </view>
+  <view class="success-view" wx:if="{{stage === 'success'}}">
+    <view class="success-icon"><image src="/assets/status-check.png" aria-hidden="true"/></view>
+    <text class="success-title">{{lastAssignment.status === 'QUANTITY_PENDING' ? '完工已登记' : pendingGroupApproval ? '报工已保存' : '报工完成'}}</text>
+    <text class="success-copy">{{lastAssignment.status === 'QUANTITY_PENDING' ? '数量待核对，可继续接单' : pendingGroupApproval ? '待组长审批，可继续接单' : '辛苦了，' + operator.name}}</text>
+    <view class="success-summary">
+      <view class="success-row"><text class="success-row-label">工序</text><text class="success-row-value">{{lastAssignment.processName}}</text></view>
+      <view class="success-row"><text class="success-row-label">工单</text><text class="success-row-value">{{lastAssignment.projectCode}}</text></view>
+      <view class="success-row"><text class="success-row-label">用时</text><text class="success-row-value">{{lastDurationText}}</text></view>
+      <view class="success-row"><text class="success-row-label">{{lastAssignment.status === 'QUANTITY_PENDING' ? '数量' : '本次报工'}}</text><text class="success-row-value">{{lastAssignment.status === 'QUANTITY_PENDING' ? '待核对' : lastAssignment.quantity + ' 件'}}</text></view>
+      <view class="success-row" wx:if="{{lastAssignment.status !== 'QUANTITY_PENDING' && lastAssignment.isQualityInspection}}"><text class="success-row-label">合格 / 不良</text><text class="success-row-value">{{lastAssignment.goodQuantity}} / {{lastAssignment.defectQuantity}} 件</text></view>
+      <view class="success-row" wx:if="{{lastAssignment.defectReasonName}}"><text class="success-row-label">原因</text><text class="success-row-value">{{lastAssignment.defectReasonName}}</text></view>
+    </view>
+    <text class="success-note" wx:if="{{assignmentError}}">{{assignmentError}}</text>
+    <button class="success-next" bindtap="nextAssignment" disabled="{{submitting}}">{{activeAssignments.length ? (lastAssignment.machineId ? '查看其他机台' : '查看下一单') : '继续接单'}}</button>
+    <button class="success-secondary" wx:if="{{cuttingSelfService && !activeAssignments.length}}" bindtap="openSelfWork">扫描下一张工单</button>
+    <button class="success-secondary" bindtap="openRecent">查看最近记录</button>
+  </view>
+  <view class="report-action-dock {{reportKeyboardHeight ? 'keyboard-open' : ''}}" style="{{reportKeyboardHeight ? 'bottom: ' + reportKeyboardHeight + 'px;' : ''}}" wx:if="{{stage === 'confirm-start' || (assignment && (stage === 'finish' || (stage === 'working' && (assignment.status === 'READY' || (assignment.status === 'IN_PROGRESS' && !submissionUncertain)))))}}">
+    <block wx:if="{{stage === 'confirm-start'}}">
+      <button class="primary-button" disabled="{{submitting || (selfServiceMode && selfWorkUnits.length > 1 && !selfWorkUnitId)}}" bindtap="startSelectedProcess">{{submitting ? '正在开工…' : (selfServiceMode ? '开工' : '开始计时')}}</button>
+      <button class="link-button compact-back" disabled="{{submitting}}" bindtap="cancelProcessChoice">{{subheadline ? '判断不对，手动选择' : (selectionMode === 'station' ? '扫错了，返回' : '返回重选')}}</button>
+    </block>
+    <block wx:elif="{{stage === 'finish'}}">
+      <button class="primary-button" disabled="{{submitting || submissionUncertain}}" bindtap="finishWork">{{submitting ? '正在报工…' : '确认结束'}}</button>
+      <button class="link-button compact-back" disabled="{{submitting}}" bindtap="backToWork">{{assignment.endedAt ? '返回' : '返回计时'}}</button>
+    </block>
+    <button wx:elif="{{assignment.status === 'READY'}}" class="primary-button start-button" disabled="{{submitting}}" bindtap="startAssignedWork">{{submitting ? '正在开始…' : '开始生产'}}</button>
+    <view wx:else class="timer-actions">
+      <button wx:if="{{!assignment.endedAt && !reviewMode}}" class="timer-pause-button {{assignment.paused ? 'timer-resume-button' : ''}}" disabled="{{submitting}}" bindtap="toggleTimer"><text class="timer-action-icon">{{timerError ? '↻' : (assignment.paused ? '▶' : 'Ⅱ')}}</text>{{timerError ? '刷新状态' : (assignment.paused ? '继续计时' : '暂停计时')}}</button>
+      <button class="primary-button finish-button" disabled="{{submitting || timerError}}" bindtap="confirmFinish">{{submitting ? '处理中…' : (assignment.quantityPolicy === 'PENDING_REVIEW' ? '登记完工' : (assignment.endedAt ? '重新提交报工' : '结束报工'))}}</button>
+    </view>
+  </view>
+<view class="app-bottom-nav" wx:if="{{stage !== 'success'}}"><button class="active" bindtap="returnToTasks" disabled="{{submitting}}"><image src="/assets/nav-home-active.png"/>任务</button><button bindtap="openRecent" disabled="{{submitting}}"><image src="/assets/nav-history.png"/>记录</button><button bindtap="openMyMenu" disabled="{{submitting}}"><image src="/assets/nav-users.png"/>我的</button></view>
+</view>
+<view class="report-load-state" wx:elif="{{loadError}}">
+  <text class="report-load-title">暂时无法打开报工页</text>
+  <text class="report-load-copy">{{loadError}}</text>
+  <button class="primary-button report-load-retry" bindtap="retryLoad">重试</button>
+</view>
+<view class="report-load-state" wx:else>
+  <text class="report-load-title">正在读取人员信息…</text>
+</view>

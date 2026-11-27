@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>安心报工 · 生产报工管理</title>
+  <meta name="description" content="现场报工记录、工单、工序和人员的 ERP 主从工作台。">
+  <link rel="preload" href="/admin/assets/embroidery-machine-list.0390558efd.webp" as="image" type="image/webp">
+  <link rel="stylesheet" href="/admin/styles.css">
+  <link rel="stylesheet" href="/admin/management.css">
+  <link rel="stylesheet" href="/admin/theme.css">
+  <link rel="stylesheet" href="/admin/task-recovery.css?v=20261106-scroll-1">
+  <link rel="stylesheet" href="/admin/production-insights.css">
+  <link rel="stylesheet" href="/admin/dispatch-feedback.css">
+  <link rel="stylesheet" href="/admin/people-groups.css?v=20261102-1">
+  <link rel="stylesheet" href="/admin/local-members.css?v=20261106-1">
+  <link rel="stylesheet" href="/admin/data-sync.css">
+</head>
+<body>
+<!-- Official Tabler icons. MIT License
+
+Copyright (c) 2020-2026 Pawe艂 Kuna
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="ledger-search" viewBox="0 0 24 24"><path d="M3 10a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+  <path d="M21 21l-6 -6" />
+</symbol><symbol id="ledger-upload" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" />
+  <path d="M7 9l5 -5l5 5" />
+  <path d="M12 4l0 12" />
+</symbol><symbol id="ledger-file-text" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4" />
+  <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+  <path d="M9 9l1 0" />
+  <path d="M9 13l6 0" />
+  <path d="M9 17l6 0" />
+</symbol><symbol id="ledger-dots" viewBox="0 0 24 24"><path d="M4 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+  <path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+  <path d="M18 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+</symbol><symbol id="ledger-refresh" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+  <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+</symbol><symbol id="ledger-info-circle" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+  <path d="M12 9h.01" />
+  <path d="M11 12h1v4h1" />
+</symbol><symbol id="ledger-chevron-right" viewBox="0 0 24 24"><path d="M9 6l6 6l-6 6" />
+</symbol>
+<!-- Sidebar icons: official tabler/tabler-icons, MIT; same license as above. -->
+<symbol id="sidebar-home" viewBox="0 0 24 24"><path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></symbol>
+<symbol id="sidebar-clipboard-list" viewBox="0 0 24 24"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2" />
+  <path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2" />
+  <path d="M9 12l.01 0" />
+  <path d="M13 12l2 0" />
+  <path d="M9 16l.01 0" />
+  <path d="M13 16l2 0" /></symbol>
+<symbol id="sidebar-cube" viewBox="0 0 24 24"><path d="M21 16.008v-8.018a1.98 1.98 0 0 0 -1 -1.717l-7 -4.008a2.016 2.016 0 0 0 -2 0l-7 4.008c-.619 .355 -1 1.01 -1 1.718v8.018c0 .709 .381 1.363 1 1.717l7 4.008a2.016 2.016 0 0 0 2 0l7 -4.008c.619 -.355 1 -1.01 1 -1.718" />
+  <path d="M12 22v-10" />
+  <path d="M12 12l8.73 -5.04" />
+  <path d="M3.27 6.96l8.73 5.04" /></symbol>
+<symbol id="sidebar-needle-thread" viewBox="0 0 24 24"><path d="M3 21c-.667 -.667 3.262 -6.236 11.785 -16.709a3.5 3.5 0 1 1 5.078 4.791c-10.575 8.612 -16.196 12.585 -16.863 11.918" />
+  <path d="M17.5 6.5l-1 1" />
+  <path d="M17 7c-2.333 -2.667 -3.5 -4 -5 -4s-2 1 -2 2c0 4 8.161 8.406 6 11c-1.056 1.268 -3.363 1.285 -5.75 .808" />
+  <path d="M5.739 15.425c-1.393 -.565 -3.739 -1.925 -3.739 -3.425" />
+  <path d="M19.5 9.5l1.5 1.5" /></symbol>
+<symbol id="sidebar-users" viewBox="0 0 24 24"><path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" />
+  <path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
+  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+  <path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></symbol>
+<symbol id="sidebar-chart-bar" viewBox="0 0 24 24"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -6" />
+  <path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -10" />
+  <path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -14" />
+  <path d="M4 20h14" /></symbol>
+<symbol id="sidebar-history" viewBox="0 0 24 24"><path d="M12 8l0 4l2 2" />
+  <path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5" /></symbol>
+<symbol id="sidebar-layout-sidebar-left-collapse" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -12" />
+  <path d="M9 4v16" />
+  <path d="M15 10l-2 2l2 2" /></symbol>
+<symbol id="sidebar-layout-sidebar-left-expand" viewBox="0 0 24 24"><path d="M4 6a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2l0 -12" />
+  <path d="M9 4v16" />
+  <path d="M14 10l2 2l-2 2" /></symbol>
+</svg>
+
+  <div id="app"></div>
+
+  <div id="auth-dialog" class="dialog-backdrop hidden" aria-hidden="true">
+    <div class="dialog login-dialog" role="status" aria-live="polite">
+      <div class="dialog-brand"><span class="brand-mark">安</span><div><strong>安心报工</strong><small>生产报工管理</small></div></div>
+      <div class="login-progress"><span class="login-spinner" aria-hidden="true"></span><div><h2>正在连接钉钉</h2><p>验证企业账号后将直接进入管理后台。</p></div></div>
+      <button class="primary hidden" type="button" id="auth-retry">重新登录</button>
+      <p id="auth-message" class="form-message" role="alert"></p>
+    </div>
+  </div>
+
+  <div id="confirm-dialog" class="dialog-backdrop hidden" aria-hidden="true"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/admin/agent-chat.js" defer></script>
+  <script src="/admin/task-recovery.js?v=20261113-overnight-1" defer></script>
+  <script src="/admin/management.js" defer></script>
+  <script src="/admin/weekly-report.js" defer></script>
+  <script src="/admin/dispatch-feedback.js" defer></script>
+  <script src="/admin/local-members.js?v=20261106-1" defer></script>
+  <script src="/admin/people-groups.js?v=20261102-1" defer></script>
+  <script src="/admin/data-sync.js" defer></script>
+  <script src="/admin/app.js?v=20261106-local-members-1" defer></script>
+</body>
+</html>
+

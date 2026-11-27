@@ -1,0 +1,22 @@
+<!-- Generated from the existing order navigation. -->
+  <view mark:backIgnore="{{true}}" class="bottom-nav {{reduceMotion ? 'nav-reduced' : ''}} {{navPressed ? 'is-pressed' : ''}} {{workspaceTaskSheet || workspaceReportModal ? 'workspace-nav-hidden' : ''}}" bindtouchstart="onGlassNavStart" catchtouchmove="onGlassNavMove" bindtouchend="onGlassNavEnd" bindtouchcancel="cancelGlassNav" aria-label="主导航" aria-hidden="{{clockoutPanel !== null || detailMounted || workspaceTaskSheet || operationPanel !== null || !!listPanel}}">
+    <view class="nav-platter" style="transform:translate3d({{navBarShift}}px,0,0) scale({{navBarScaleX}},{{navBarScaleY}})">
+    <view class="nav-glass-base" aria-hidden="true"/>
+    <view class="nav-finger-glow" style="opacity:{{navLift * .2845}};transform:translate3d({{navGlowX - 46.5}}px,0,0)" aria-hidden="true"/>
+    <button size="mini" wx:for="{{navItems}}" wx:key="index" id="{{item.index === 2 ? 'nav-clockout' : 'nav-item-' + item.index}}" class="native-button nav-item {{item.index === navActiveIndex ? 'active' : ''}} {{item.index === 2 && clockoutPanel && clockoutMotion ? 'clockout-source-hidden' : ''}}" style="left:{{item.left}}px;width:{{navPillWidth}}px" data-index="{{item.index}}" bindtap="onGlassNavTap" hover-class="none" aria-label="{{item.label}}{{item.index === navActiveIndex ? '，当前页面' : ''}}">
+      <view class="nav-symbols"><image src="/workspace/assets/liquid-nav-{{item.icon}}-gray.png"/><text>{{item.label}}</text></view>
+    </button>
+    <view class="nav-lens" style="width:{{navPillWidth}}px;transform:translate3d({{navLensLeft}}px,0,0)" aria-hidden="true">
+      <view class="nav-lens-surface" style="transform:scale({{1 + navLift * 16 / navPillWidth}},{{1 + navLift * 16 / 54}})"/>
+      <view class="nav-lens-window" style="transform:scale({{1 + navLift * 16 / navPillWidth}},{{1 + navLift * 16 / 54}})">
+        <view class="nav-lens-counter" style="transform:scale({{1 / (1 + navLift * 16 / navPillWidth)}},{{1 / (1 + navLift * 16 / 54)}})">
+        <view class="nav-tinted-track" style="transform:translate3d({{-navLensLeft}}px,0,0)">
+          <view wx:for="{{navItems}}" wx:key="index" class="nav-tinted-item" style="left:{{item.left}}px;width:{{navPillWidth}}px">
+            <view class="nav-symbols" style="transform:scale({{1 + navLift * .16}})"><image src="/workspace/assets/liquid-nav-{{item.icon}}-blue.png"/><text>{{item.label}}</text></view>
+          </view>
+        </view>
+        </view>
+      </view>
+    </view>
+    </view>
+  </view>

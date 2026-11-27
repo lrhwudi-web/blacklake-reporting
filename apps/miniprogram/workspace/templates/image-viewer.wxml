@@ -1,0 +1,14 @@
+<template name="glass-image-viewer">
+  <view class="photo-root {{reduceMotion ? 'photo-reduced' : ''}}" wx:if="{{url}}" aria-role="dialog" aria-label="产品图片预览" aria-modal="true">
+    <view class="photo-mask {{open ? 'is-open' : ''}}" bindtap="closeProductPreview" catchtouchmove="photoStopBubble"/>
+    <view class="photo-shell {{open ? 'is-open' : ''}}" style="left:{{panelX}}px;top:{{panelY}}px;width:{{panelWidth}}px;height:{{panelHeight}}px;transform:{{open ? 'translate3d(0,0,0) scale(1,1)' : closedTransform}};border-radius:{{open ? '28px' : closedRadius}}"/>
+    <view class="photo-panel {{open ? 'is-open' : ''}}" data-anchor="{{anchorId}}" style="left:{{panelX}}px;top:{{panelY}}px;width:{{panelWidth}}px;height:{{panelHeight}}px" catchtap="photoStopBubble" aria-hidden="{{!open}}">
+      <view class="photo-heading"><text>产品图片</text><button size="mini" class="native-button photo-close" bindtap="closeProductPreview" aria-label="关闭图片"><image class="photo-chevron" src="/workspace/assets/ui-chevron-down.png"/></button></view>
+      <view mark:backIgnore="{{true}}" class="photo-stage" bindtouchstart="onPhotoTouchStart" catchtouchmove="onPhotoTouchMove" bindtouchend="onPhotoTouchEnd" bindtouchcancel="onPhotoTouchEnd" catchtap="photoTap" data-scale="{{scale}}">
+        <image wx:if="{{!failed}}" class="photo-image" src="{{url}}" data-url="{{url}}" mode="aspectFit" style="transform:translate3d({{x}}px,{{y}}px,0) scale({{scale}})" bindload="photoLoaded" binderror="photoError"/>
+        <text wx:else class="photo-failed">图片加载失败</text>
+      </view>
+      <view class="photo-footer"><view class="photo-controls"><button size="mini" class="native-button photo-control {{scale <= 1 || failed ? 'photo-disabled' : ''}}" bindtap="photoZoomOut" disabled="{{scale <= 1 || failed}}" aria-label="缩小图片">−</button><button size="mini" class="native-button photo-control photo-percent" bindtap="photoReset" disabled="{{failed}}" aria-label="重置图片缩放">{{percent}}%</button><button size="mini" class="native-button photo-control {{scale >= 4 || failed ? 'photo-disabled' : ''}}" bindtap="photoZoomIn" disabled="{{scale >= 4 || failed}}" aria-label="放大图片">+</button></view></view>
+    </view>
+  </view>
+</template>

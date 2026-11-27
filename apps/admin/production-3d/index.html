@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>3D生产现场 · 安心报工</title>
+  <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="polish.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body class="immersive">
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true"><symbol id="ti-arrow-left" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12l14 0" />
+  <path d="M5 12l6 6" />
+  <path d="M5 12l6 -6" />
+</symbol><symbol id="ti-arrow-right" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M5 12l14 0" />
+  <path d="M13 18l6 -6" />
+  <path d="M13 6l6 6" />
+</symbol><symbol id="ti-chevron-down" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M6 9l6 6l6 -6" />
+</symbol><symbol id="ti-chevron-right" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M9 6l6 6l-6 6" />
+</symbol><symbol id="ti-chevron-up" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M6 15l6 -6l6 6" />
+</symbol><symbol id="ti-cube" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M21 16.008v-8.018a1.98 1.98 0 0 0 -1 -1.717l-7 -4.008a2.016 2.016 0 0 0 -2 0l-7 4.008c-.619 .355 -1 1.01 -1 1.718v8.018c0 .709 .381 1.363 1 1.717l7 4.008a2.016 2.016 0 0 0 2 0l7 -4.008c.619 -.355 1 -1.01 1 -1.718" />
+  <path d="M12 22v-10" />
+  <path d="M12 12l8.73 -5.04" />
+  <path d="M3.27 6.96l8.73 5.04" />
+</symbol><symbol id="ti-focus-2" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M11.5 12a.5 .5 0 1 0 1 0a.5 .5 0 1 0 -1 0" fill="currentColor" />
+  <path d="M5 12a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" />
+  <path d="M12 3l0 2" />
+  <path d="M3 12l2 0" />
+  <path d="M12 19l0 2" />
+  <path d="M19 12l2 0" />
+</symbol><symbol id="ti-info-circle" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+  <path d="M12 9h.01" />
+  <path d="M11 12h1v4h1" />
+</symbol><symbol id="ti-layout-grid" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M4 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+  <path d="M14 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+  <path d="M4 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+  <path d="M14 15a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1l0 -4" />
+</symbol><symbol id="ti-map" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13" />
+  <path d="M9 4v13" />
+  <path d="M15 7v13" />
+</symbol><symbol id="ti-player-pause" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M6 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -12" />
+  <path d="M14 6a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v12a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1l0 -12" />
+</symbol><symbol id="ti-player-play" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M7 4v16l13 -8l-13 -8" />
+</symbol><symbol id="ti-refresh" viewBox="0 0 24 24">
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="24"
+  height="24"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+  <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+</symbol></svg>
+<!-- Tabler Icons, official outline paths; https://github.com/tabler/tabler-icons
+MIT License
+
+Copyright (c) 2020-2026 Paweł Kuna
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+-->
+  <main class="spatial-stage" aria-label="3D生产现场">
+    <div class="page-heading sr-only"><div class="eyebrow"></div><h1>3D生产现场</h1><p></p></div>
+    <div class="scene" id="scene" aria-label="可旋转缩放的3D生产现场"><div id="labels" class="labels"></div><div id="scene-error" hidden>3D暂时无法加载。你仍可在底部查看工单、位置和工序。</div></div>
+    <header class="scene-identity glass"><a href="/admin" target="_top" class="identity-link" data-return-workspace aria-label="返回报工管理"><span class="brand-mark">安</span><strong>安心报工</strong></a><span class="identity-divider"></span><span id="scene-title">8楼生产车间</span></header>
+    <section id="metrics" class="metrics glass" aria-label="现场汇总"></section>
+    <div class="sync-controls glass"><button id="refresh" aria-label="刷新现场数据" title="刷新现场数据"><svg class="ti" aria-hidden="true"><use href="#ti-refresh"/></svg></button><span id="sync-status" class="live-badge" role="status">正在同步</span></div>
+    <nav class="floor-switcher glass" aria-label="楼层切换">
+      <button data-floor="3" aria-pressed="false" title="3楼绣花车间"><b>3F</b><span class="sr-only">3楼绣花车间</span></button>
+      <button data-floor="8" aria-pressed="true" class="active" title="8楼生产车间"><b>8F</b><span class="sr-only">8楼生产车间</span></button>
+      <button data-floor="4" aria-pressed="false" title="4楼仓库 · 布局示意"><b>4F</b><span class="sr-only">4楼仓库</span><small>布局示意</small></button>
+    </nav>
+    <div class="view-tools" role="group" aria-label="视角和动画工具">
+      <div class="navigation-modes glass" role="group" aria-label="左键拖动方式">
+        <button id="mode-rotate" aria-label="旋转模式" aria-pressed="true" title="左键拖动旋转；按住空格临时移动">旋转</button>
+        <button id="mode-pan" aria-label="移动模式" aria-pressed="false" title="左键拖动平移；按住空格也可临时移动">移动</button>
+      </div>
+      <button class="glass" id="overview" aria-label="楼层总览" title="楼层总览"><svg class="ti" aria-hidden="true"><use href="#ti-cube"/></svg><span>总览</span></button>
+      <button class="glass" id="top-view" aria-label="俯视" title="俯视"><svg class="ti" aria-hidden="true"><use href="#ti-focus-2"/></svg><span>俯视</span></button>
+      <button class="glass" id="tour" aria-pressed="false" aria-label="自动巡览"><svg class="ti" aria-hidden="true"><use href="#ti-map"/></svg><span>巡览</span></button>
+      <button class="glass" id="pause" aria-pressed="false" aria-label="暂停动画"><svg class="ti" aria-hidden="true"><use href="#ti-player-pause"/></svg></button>
+      <label class="glass speed-control"><select id="speed" aria-label="动画速度"><option value=".5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+    </div>
+    <div id="data-message" class="live-message" role="status">正在读取现场任务。模型与机械动作仅为示意。</div>
+    <section id="inspector" class="inspector glass" aria-label="现场信息托盘">
+      <div class="tray-heading"><div class="tray-tabs" role="tablist" aria-label="现场信息">
+        <button id="tab-detail" role="tab" aria-selected="true" aria-controls="panel-detail" data-panel="detail" tabindex="0">位置详情</button>
+        <button id="tab-orders" role="tab" aria-selected="false" aria-controls="panel-orders" data-panel="orders" tabindex="-1">关联工单 <span id="order-count">00</span></button>
+        <button id="tab-route" role="tab" aria-selected="false" aria-controls="panel-route" data-panel="route" tabindex="-1">工序进度</button>
+      </div><div class="tray-actions">
+        <button id="positions" class="subtle-icon" aria-label="打开位置导航" title="位置导航" aria-expanded="false" aria-controls="position-drawer"><svg class="ti" aria-hidden="true"><use href="#ti-layout-grid"/></svg></button>
+        <button id="collapse-tray" class="subtle-icon" aria-label="收起详情" aria-expanded="true" aria-controls="tray-content"><svg class="ti" aria-hidden="true"><use href="#ti-chevron-down"/></svg></button>
+      </div></div>
+      <div id="position-drawer" class="machine-nav" hidden><div class="nav-heading"><span>位置导航</span><button id="clear">清除选择 · 楼层总览</button></div><div id="machine-strip" aria-label="楼层位置导航"></div></div>
+      <div id="tray-content" class="tray-content">
+        <section id="panel-detail" class="tray-panel" role="tabpanel" aria-labelledby="tab-detail" tabindex="0"><div id="detail" class="detail-panel" aria-live="polite"></div></section>
+        <section id="panel-orders" class="tray-panel orders-panel" role="tabpanel" aria-labelledby="tab-orders" tabindex="0" hidden>
+          <div class="orders-toolbar"><label class="search"><input id="search" aria-label="搜索工单" placeholder="搜索工单号 / 产品名称"></label><div class="filter-row"><button data-filter="all" class="active">全部</button><button data-filter="running">生产中</button><button data-filter="attention">待处理</button></div></div>
+          <div id="orders" class="order-list"></div><p class="panel-note">仅展示关联本楼层位置的工单；数量来自黑湖工序累计。</p>
+        </section>
+        <section id="panel-route" class="tray-panel route-panel" role="tabpanel" aria-labelledby="tab-route" tabindex="0" hidden>
+          <div class="route-heading"><div><span class="eyebrow">黑湖工序</span><h2 id="route-title">选择工单查看进度</h2></div><span id="route-summary"></span></div><div id="route" class="route"></div><p class="route-note">各道工序累计分别展示；资料不完整时不推断完成率。</p>
+        </section>
+      </div>
+    </section>
+    <footer class="scene-footer"><span class="scene-sub" id="scene-sub">左键旋转 · 空格＋拖动临时移动 · 滚轮缩放</span><span id="motion-status" class="sr-only">运行示意中</span><button id="data-info" aria-label="查看数据来源说明" aria-expanded="false" aria-controls="data-message"><svg class="ti" aria-hidden="true"><use href="#ti-info-circle"/></svg><span id="scene-fact">动作示意 · 非实时设备信号</span></button><span id="updated" class="sr-only">等待首次同步</span></footer>
+  </main>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

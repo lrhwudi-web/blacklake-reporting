@@ -1,0 +1,15 @@
+.compact-hero { margin-top: 8rpx; }
+.refresh-notice { margin: 0 0 18rpx; color: #637697; text-align: center; font-size: 26rpx; }
+.load-error-title { display: block; color: #0c2b68; font-size: 32rpx; font-weight: 800; }
+.load-error-copy { display: block; margin-top: 12rpx; color: #637697; font-size: 27rpx; line-height: 1.6; }
+.retry-button { margin-top: 24rpx; min-height: 84rpx; border: 2rpx solid #bcd9fb; border-radius: 20rpx; background: #edf6ff; color: #196bc8; font-size: 28rpx; font-weight: 800; line-height: 84rpx; }
+.report-card { margin-bottom: 18rpx; padding: 26rpx; border: 2rpx solid #e4ebf6; border-radius: 28rpx; background: #fff; box-shadow: 0 12rpx 32rpx rgba(37, 76, 139, .07); }
+.report-top { display: flex; justify-content: space-between; gap: 18rpx; }
+.report-top > view { min-width: 0; }
+.report-process { display: block; overflow: hidden; color: #0c2b68; font-size: 34rpx; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.report-product { display: block; margin-top: 6rpx; color: #7a88a4; font-size: 26rpx; }
+.report-amount { flex: 0 0 auto; color: #1686f5; font-size: 36rpx; font-weight: 900; }
+.report-bottom { display: flex; justify-content: space-between; margin-top: 20rpx; padding-top: 18rpx; border-top: 2rpx solid #e7edf6; color: #7a88a4; font-size: 24rpx; }
+.report-success { color: #179844; font-weight: 900; }
+.report-warning { color: #c62f49; }
+.report-details { display: flex; justify-content: space-between; margin-top: 20rpx; padding-top: 18rpx; border-top: 2rpx solid #e7edf6; color: #31558b; font-size: 26rpx; font-weight: 800; }

@@ -1,0 +1,7 @@
+    <view class="dispatch-priority" wx:if="{{executionMode === 'formal'}}">
+      <view class="priority-options"><button size="mini" class="native-button {{dispatchPriority === 'NORMAL' ? 'chosen' : ''}}" data-priority="NORMAL" bindtap="setDispatchPriority" disabled="{{submitting}}">普通派工</button><button size="mini" class="native-button priority-urgent {{dispatchPriority === 'URGENT' ? 'chosen' : ''}}" data-priority="URGENT" bindtap="setDispatchPriority" disabled="{{submitting}}">加急插单</button></view>
+      <text class="priority-note">{{dispatchPriority === 'URGENT' ? '暂停所选员工正在做的原任务；原任务重新排到第一位后，员工可点击开始。' : '员工忙碌时排入待开始，保留当前生产。'}}</text>
+      <text class="priority-note" wx:if="{{impactLoading}}">正在核对人员任务…</text>
+      <view class="pause-preview" wx:if="{{dispatchPriority === 'URGENT' && pausePreview.length}}"><text>将自动暂停 {{pausePreview.length}} 人的原任务</text><view wx:for="{{pausePreview}}" wx:key="assignmentId"><text>{{item.workerName}}</text><text>{{item.orderCode}} · {{item.processName}}</text></view></view>
+      <view class="dispatch-impact-error" wx:if="{{dispatchError}}"><text>{{dispatchError}}</text><button size="mini" class="native-button" bindtap="refreshDispatchImpact" disabled="{{impactLoading || submitting}}">重新核对</button></view>
+    </view>
